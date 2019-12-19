@@ -43,14 +43,13 @@ namespace JsonConverterGenerator
                 // Only unescaped property names are allowed.
                 ReadOnlySpan<byte> propertyName = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
                 
-                // Assuming target is NetCore and we don't need to call .ToArray().
-                string stringPropertyName = Encoding.UTF8.GetString(propertyName);
-                
                 // Move reader cursor to property value.
                 reader.Read();
                 
                 // Try to match property name with object properties (case sensitive).
-                if (stringPropertyName == "Age")
+                
+                // Determine if JSON property matches 'Age'.
+                if (propertyName.Length == 3 && propertyName[0] == (byte)'A' && propertyName[1] == (byte)'g' && propertyName[2] == (byte)'e')
                 {
                     if (Utf8Parser.TryParse(propertyName, out int tmp, out int bytesConsumed) && propertyName.Length == bytesConsumed)
                     {
@@ -61,15 +60,18 @@ namespace JsonConverterGenerator
                         throw new JsonException();
                     }
                 }
-                else if (stringPropertyName == "First")
+                // Determine if JSON property matches 'First'.
+                else if (propertyName.Length == 5 && propertyName[0] == (byte)'F' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'r' && propertyName[3] == (byte)'s' && propertyName[4] == (byte)'t')
                 {
                     value.First = reader.GetString();
                 }
-                else if (stringPropertyName == "Last")
+                // Determine if JSON property matches 'Last'.
+                else if (propertyName.Length == 4 && propertyName[0] == (byte)'L' && propertyName[1] == (byte)'a' && propertyName[2] == (byte)'s' && propertyName[3] == (byte)'t')
                 {
                     value.Last = reader.GetString();
                 }
-                else if (stringPropertyName == "MiddleInitial")
+                // Determine if JSON property matches 'MiddleInitial'.
+                else if (propertyName.Length == 13 && propertyName[0] == (byte)'M' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'d' && propertyName[3] == (byte)'d' && propertyName[4] == (byte)'l' && propertyName[5] == (byte)'e' && propertyName[6] == (byte)'I' && propertyName[7] == (byte)'n' && propertyName[8] == (byte)'i' && propertyName[9] == (byte)'t' && propertyName[10] == (byte)'i' && propertyName[11] == (byte)'a' && propertyName[12] == (byte)'l')
                 {
                     string tmp = reader.GetString();
                     if (string.IsNullOrEmpty(tmp))
@@ -79,7 +81,8 @@ namespace JsonConverterGenerator
                     
                     value.MiddleInitial = tmp[0];
                 }
-                else if (stringPropertyName == "BirthDate")
+                // Determine if JSON property matches 'BirthDate'.
+                else if (propertyName.Length == 9 && propertyName[0] == (byte)'B' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'r' && propertyName[3] == (byte)'t' && propertyName[4] == (byte)'h' && propertyName[5] == (byte)'D' && propertyName[6] == (byte)'a' && propertyName[7] == (byte)'t' && propertyName[8] == (byte)'e')
                 {
                     value.BirthDate = reader.GetDateTimeOffset();
                 }
@@ -120,22 +123,23 @@ namespace JsonConverterGenerator
                 // Only unescaped property names are allowed.
                 ReadOnlySpan<byte> propertyName = reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
                 
-                // Assuming target is NetCore and we don't need to call .ToArray().
-                string stringPropertyName = Encoding.UTF8.GetString(propertyName);
-                
                 // Move reader cursor to property value.
                 reader.Read();
                 
                 // Try to match property name with object properties (case sensitive).
-                if (stringPropertyName == "Street")
+                
+                // Determine if JSON property matches 'Street'.
+                if (propertyName.Length == 6 && propertyName[0] == (byte)'S' && propertyName[1] == (byte)'t' && propertyName[2] == (byte)'r' && propertyName[3] == (byte)'e' && propertyName[4] == (byte)'e' && propertyName[5] == (byte)'t')
                 {
                     value.Street = reader.GetString();
                 }
-                else if (stringPropertyName == "City")
+                // Determine if JSON property matches 'City'.
+                else if (propertyName.Length == 4 && propertyName[0] == (byte)'C' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'t' && propertyName[3] == (byte)'y')
                 {
                     value.City = reader.GetString();
                 }
-                else if (stringPropertyName == "Zip")
+                // Determine if JSON property matches 'Zip'.
+                else if (propertyName.Length == 3 && propertyName[0] == (byte)'Z' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'p')
                 {
                     if (Utf8Parser.TryParse(propertyName, out int tmp, out int bytesConsumed) && propertyName.Length == bytesConsumed)
                     {

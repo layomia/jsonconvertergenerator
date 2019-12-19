@@ -47,7 +47,6 @@ namespace JsonConverterGenerator
             WriteLine("using System;");
             WriteLine("using System.Buffers;");
             WriteLine("using System.Buffers.Text;");
-            WriteLine("using System.Text;");
             WriteLine("using System.Text.Json;");
             WriteLine("using System.Text.Json.Serialization;");
 
@@ -186,7 +185,6 @@ namespace JsonConverterGenerator
 
             if (properties.Length > 0)
             {
-
                 // Read all properties.
                 WriteSingleLineComment("Read all properties");
                 WriteLine("while (true)");
@@ -208,11 +206,6 @@ namespace JsonConverterGenerator
 
                 WriteBlankLine();
 
-                WriteSingleLineComment("Assuming target is NetCore and we don't need to call .ToArray()");
-                WriteLine("string stringPropertyName = Encoding.UTF8.GetString(propertyName);");
-
-                WriteBlankLine();
-
                 WriteSingleLineComment("Move reader cursor to property value");
                 WriteLine(@$"reader.Read();");
 
@@ -220,6 +213,7 @@ namespace JsonConverterGenerator
 
                 // Try to match property name with object properties (case sensitive).
                 WriteSingleLineComment("Try to match property name with object properties (case sensitive)");
+                WriteBlankLine();
 
                 for (int i = 0; i < properties.Length; i++)
                 {
@@ -230,7 +224,8 @@ namespace JsonConverterGenerator
 
                     string elsePrefix = i > 0 ? "else " : "";
 
-                    WriteLine(@$"{elsePrefix}if (stringPropertyName == ""{objectPropertyName}"")");
+                    WriteSingleLineComment($"Determine if JSON property matches '{objectPropertyName}'");
+                    WriteLine(@$"{elsePrefix}if ({GeneratePropertyNameMatchCondition(objectPropertyName)})");
                     WriteControlBlockStart();
 
                     if (propertyType == typeof(int))
@@ -291,6 +286,20 @@ namespace JsonConverterGenerator
             WriteLine($"return value;");
 
             WriteControlBlockEnd();
+        }
+
+        private string GeneratePropertyNameMatchCondition(string objectPropertyName)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append($"propertyName.Length == {objectPropertyName.Length}");
+
+            for (int i = 0; i < objectPropertyName.Length; i++)
+            {
+                sb.Append($" && propertyName[{i}] == (byte)'{objectPropertyName[i]}'");
+            }
+
+            return sb.ToString();
         }
 
         private void WriteSingleLineComment(string value)
