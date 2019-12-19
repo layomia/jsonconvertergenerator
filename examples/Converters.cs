@@ -10,6 +10,7 @@
 
 using System;
 using System.Buffers;
+using System.Buffers.Text;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -18,32 +19,6 @@ namespace JsonConverterGenerator
 {
     public class JsonConverterForJsonConverterGeneratorBasicPerson: JsonConverter<BasicPerson>
     {
-        private bool _checkedForInt32Converter;
-        private JsonConverter<Int32> _int32Converter;
-        private JsonConverter<Int32> GetInt32Converter(JsonSerializerOptions options)
-        {
-            if (!_checkedForInt32Converter && _int32Converter == null && options != null)
-            {
-                _int32Converter = (JsonConverter<Int32>)options.GetConverter(typeof(Int32));
-                _checkedForInt32Converter = true;
-            }
-            
-            return _int32Converter;
-        }
-        
-        private bool _checkedForStringConverter;
-        private JsonConverter<String> _stringConverter;
-        private JsonConverter<String> GetStringConverter(JsonSerializerOptions options)
-        {
-            if (!_checkedForStringConverter && _stringConverter == null && options != null)
-            {
-                _stringConverter = (JsonConverter<String>)options.GetConverter(typeof(String));
-                _checkedForStringConverter = true;
-            }
-            
-            return _stringConverter;
-        }
-        
         public override BasicPerson Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             // Validate that the reader's cursor is at a start token.
@@ -58,6 +33,8 @@ namespace JsonConverterGenerator
             // Read all properties.
             while (true)
             {
+                reader.Read();
+                
                 if (reader.TokenType == JsonTokenType.EndObject)
                 {
                     break;
@@ -69,42 +46,42 @@ namespace JsonConverterGenerator
                 // Assuming target is NetCore and we don't need to call .ToArray().
                 string stringPropertyName = Encoding.UTF8.GetString(propertyName);
                 
+                // Move reader cursor to property value.
+                reader.Read();
+                
                 // Try to match property name with object properties (case sensitive).
                 if (stringPropertyName == "Age")
                 {
-                    JsonConverter<Int32> converter = GetInt32Converter(options);
-                    if (converter != null)
+                    if (Utf8Parser.TryParse(propertyName, out int tmp, out int bytesConsumed) && propertyName.Length == bytesConsumed)
                     {
-                        value.Age = converter.Read(ref reader, typeToConvert, options);
+                        value.Age = tmp;
                     }
                     else
                     {
-                        value.Age = JsonSerializer.Deserialize<Int32>(ref reader, options);
+                        throw new JsonException();
                     }
                 }
                 else if (stringPropertyName == "First")
                 {
-                    JsonConverter<String> converter = GetStringConverter(options);
-                    if (converter != null)
-                    {
-                        value.First = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.First = JsonSerializer.Deserialize<String>(ref reader, options);
-                    }
+                    value.First = reader.GetString();
                 }
                 else if (stringPropertyName == "Last")
                 {
-                    JsonConverter<String> converter = GetStringConverter(options);
-                    if (converter != null)
+                    value.Last = reader.GetString();
+                }
+                else if (stringPropertyName == "MiddleInitial")
+                {
+                    string tmp = reader.GetString();
+                    if (string.IsNullOrEmpty(tmp))
                     {
-                        value.Last = converter.Read(ref reader, typeToConvert, options);
+                        throw new JsonException();
                     }
-                    else
-                    {
-                        value.Last = JsonSerializer.Deserialize<String>(ref reader, options);
-                    }
+                    
+                    value.MiddleInitial = tmp[0];
+                }
+                else if (stringPropertyName == "BirthDate")
+                {
+                    value.BirthDate = reader.GetDateTimeOffset();
                 }
             }
             
@@ -119,32 +96,6 @@ namespace JsonConverterGenerator
     
     public class JsonConverterForJsonConverterGeneratorBasicJsonAddress: JsonConverter<BasicJsonAddress>
     {
-        private bool _checkedForStringConverter;
-        private JsonConverter<String> _stringConverter;
-        private JsonConverter<String> GetStringConverter(JsonSerializerOptions options)
-        {
-            if (!_checkedForStringConverter && _stringConverter == null && options != null)
-            {
-                _stringConverter = (JsonConverter<String>)options.GetConverter(typeof(String));
-                _checkedForStringConverter = true;
-            }
-            
-            return _stringConverter;
-        }
-        
-        private bool _checkedForInt32Converter;
-        private JsonConverter<Int32> _int32Converter;
-        private JsonConverter<Int32> GetInt32Converter(JsonSerializerOptions options)
-        {
-            if (!_checkedForInt32Converter && _int32Converter == null && options != null)
-            {
-                _int32Converter = (JsonConverter<Int32>)options.GetConverter(typeof(Int32));
-                _checkedForInt32Converter = true;
-            }
-            
-            return _int32Converter;
-        }
-        
         public override BasicJsonAddress Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             // Validate that the reader's cursor is at a start token.
@@ -159,6 +110,8 @@ namespace JsonConverterGenerator
             // Read all properties.
             while (true)
             {
+                reader.Read();
+                
                 if (reader.TokenType == JsonTokenType.EndObject)
                 {
                     break;
@@ -170,41 +123,27 @@ namespace JsonConverterGenerator
                 // Assuming target is NetCore and we don't need to call .ToArray().
                 string stringPropertyName = Encoding.UTF8.GetString(propertyName);
                 
+                // Move reader cursor to property value.
+                reader.Read();
+                
                 // Try to match property name with object properties (case sensitive).
                 if (stringPropertyName == "Street")
                 {
-                    JsonConverter<String> converter = GetStringConverter(options);
-                    if (converter != null)
-                    {
-                        value.Street = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.Street = JsonSerializer.Deserialize<String>(ref reader, options);
-                    }
+                    value.Street = reader.GetString();
                 }
                 else if (stringPropertyName == "City")
                 {
-                    JsonConverter<String> converter = GetStringConverter(options);
-                    if (converter != null)
-                    {
-                        value.City = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.City = JsonSerializer.Deserialize<String>(ref reader, options);
-                    }
+                    value.City = reader.GetString();
                 }
                 else if (stringPropertyName == "Zip")
                 {
-                    JsonConverter<Int32> converter = GetInt32Converter(options);
-                    if (converter != null)
+                    if (Utf8Parser.TryParse(propertyName, out int tmp, out int bytesConsumed) && propertyName.Length == bytesConsumed)
                     {
-                        value.Zip = converter.Read(ref reader, typeToConvert, options);
+                        value.Zip = tmp;
                     }
                     else
                     {
-                        value.Zip = JsonSerializer.Deserialize<Int32>(ref reader, options);
+                        throw new JsonException();
                     }
                 }
             }

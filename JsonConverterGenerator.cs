@@ -13,6 +13,16 @@ namespace JsonConverterGenerator
         private readonly string _outputNamespace;
         private int _indent;
 
+        private static readonly HashSet<Type> s_simpleTypes = new HashSet<Type>
+        {
+            typeof(bool),
+            typeof(int),
+            typeof(string),
+            typeof(char),
+            typeof(DateTime),
+            typeof(DateTimeOffset),
+        };
+
         public CodeGenerator(string outputNamespace)
         {
             if (string.IsNullOrWhiteSpace(outputNamespace))
@@ -36,6 +46,7 @@ namespace JsonConverterGenerator
 
             WriteLine("using System;");
             WriteLine("using System.Buffers;");
+            WriteLine("using System.Buffers.Text;");
             WriteLine("using System.Text;");
             WriteLine("using System.Text.Json;");
             WriteLine("using System.Text.Json.Serialization;");
@@ -102,7 +113,7 @@ namespace JsonConverterGenerator
             {
                 Type propertyType = property.PropertyType;
 
-                if (cachedTypes.Contains(propertyType))
+                if (cachedTypes.Contains(propertyType) || s_simpleTypes.Contains(propertyType))
                 {
                     continue;
                 }
@@ -140,6 +151,11 @@ namespace JsonConverterGenerator
             }
         }
 
+        private void WriteThrowJsonException()
+        {
+            WriteLine("throw new JsonException();");
+        }
+
         private void WriteConverterReadMethod(Type type)
         {
             WriteMethodStart(
@@ -155,7 +171,7 @@ namespace JsonConverterGenerator
             WriteSingleLineComment("Validate that the reader's cursor is at a start token");
             WriteLine("if (reader.TokenType != JsonTokenType.StartObject)");
             WriteControlBlockStart();
-            WriteLine("throw new JsonException();");
+            WriteThrowJsonException();
             WriteControlBlockEnd();
 
             WriteBlankLine();
@@ -176,6 +192,9 @@ namespace JsonConverterGenerator
                 WriteLine("while (true)");
                 WriteControlBlockStart();
 
+                WriteLine(@$"reader.Read();");
+                WriteBlankLine();
+
                 WriteLine("if (reader.TokenType == JsonTokenType.EndObject)");
                 WriteControlBlockStart();
                 WriteLine("break;");
@@ -194,35 +213,72 @@ namespace JsonConverterGenerator
 
                 WriteBlankLine();
 
+                WriteSingleLineComment("Move reader cursor to property value");
+                WriteLine(@$"reader.Read();");
+
+                WriteBlankLine();
+
                 // Try to match property name with object properties (case sensitive).
                 WriteSingleLineComment("Try to match property name with object properties (case sensitive)");
 
                 for (int i = 0; i < properties.Length; i++)
                 {
                     PropertyInfo property = properties[i];
+                    Type propertyType = property.PropertyType;
                     string objectPropertyName = property.Name;
-                    string propertyTypeName = property.PropertyType.Name;
+                    string propertyTypeName = propertyType.Name;
 
                     string elsePrefix = i > 0 ? "else " : "";
 
                     WriteLine(@$"{elsePrefix}if (stringPropertyName == ""{objectPropertyName}"")");
                     WriteControlBlockStart();
 
-                    WriteLine($"JsonConverter<{propertyTypeName}> converter = Get{propertyTypeName}Converter(options);");
+                    if (propertyType == typeof(int))
+                    {
+                        WriteLine("if (Utf8Parser.TryParse(propertyName, out int tmp, out int bytesConsumed) && propertyName.Length == bytesConsumed)");
+                        WriteControlBlockStart();
+                        WriteLine($"value.{objectPropertyName} = tmp;"); ;
+                        WriteControlBlockEnd();
 
-                    WriteLine("if (converter != null)");
-                    WriteControlBlockStart();
+                        WriteLine("else");
+                        WriteControlBlockStart();
+                        WriteThrowJsonException();
+                        WriteControlBlockEnd();
+                    }
+                    else if (propertyType == typeof(char))
+                    {
+                        WriteLine("string tmp = reader.GetString();");
+                        WriteLine("if (string.IsNullOrEmpty(tmp))");
+                        WriteControlBlockStart();
+                        WriteThrowJsonException();
+                        WriteControlBlockEnd();
 
-                    WriteLine($"value.{objectPropertyName} = converter.Read(ref reader, typeToConvert, options);");
+                        WriteBlankLine();
 
-                    WriteControlBlockEnd();
+                        WriteLine($"value.{objectPropertyName} = tmp[0];");
+                    }
+                    else if (s_simpleTypes.Contains(propertyType))
+                    {
+                        WriteLine($"value.{objectPropertyName} = reader.Get{propertyType.Name}();");
+                    }
+                    else
+                    {
+                        WriteLine($"JsonConverter<{propertyTypeName}> converter = Get{propertyTypeName}Converter(options);");
 
-                    WriteLine("else");
-                    WriteControlBlockStart();
+                        WriteLine("if (converter != null)");
+                        WriteControlBlockStart();
 
-                    WriteLine($"value.{objectPropertyName} = JsonSerializer.Deserialize<{propertyTypeName}>(ref reader, options);");
+                        WriteLine($"value.{objectPropertyName} = converter.Read(ref reader, typeToConvert, options);");
 
-                    WriteControlBlockEnd();
+                        WriteControlBlockEnd();
+
+                        WriteLine("else");
+                        WriteControlBlockStart();
+
+                        WriteLine($"value.{objectPropertyName} = JsonSerializer.Deserialize<{propertyTypeName}>(ref reader, options);");
+
+                        WriteControlBlockEnd();
+                    }
 
                     WriteControlBlockEnd();
                 }
