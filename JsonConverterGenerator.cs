@@ -157,7 +157,8 @@ namespace JsonConverterGenerator
 
             WriteBlankLine();
 
-            // Create returned object.
+            // Create returned object. This assumes type has public parameterless ctor.
+            WriteSingleLineComment("Create returned object. This assumes type has public parameterless ctor");
             WriteLine($"{typeFullName} value = new {typeFullName}();");
 
             WriteBlankLine();
@@ -216,7 +217,7 @@ namespace JsonConverterGenerator
                     WriteLine("else");
                     WriteControlBlockStart();
 
-                    WriteLine($"value.{objectPropertyName} = JsonSerializer.Deserialize<{propertyTypeName}>(ref reader,options);");
+                    WriteLine($"value.{objectPropertyName} = JsonSerializer.Deserialize<{propertyTypeName}>(ref reader, options);");
 
                     WriteControlBlockEnd();
 
