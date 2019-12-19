@@ -34,6 +34,9 @@ namespace JsonConverterGenerator
 
             WriteBlankLine();
 
+            WriteLine("using System;");
+            WriteLine("using System.Buffers;");
+            WriteLine("using System.Text;");
             WriteLine("using System.Text.Json;");
             WriteLine("using System.Text.Json.Serialization;");
 
@@ -120,7 +123,7 @@ namespace JsonConverterGenerator
                 WriteLine($"if (!{converterRetrievalSentinelFieldName} && {converterFieldName} == null && options != null)");
                 WriteControlBlockStart();
 
-                WriteLine($"{converterFieldName} = options.GetConverter(typeof({propertyTypeName}));");
+                WriteLine($"{converterFieldName} = ({converterReturnTypeName})options.GetConverter(typeof({propertyTypeName}));");
                 WriteLine($"{converterRetrievalSentinelFieldName} = true;");
 
                 WriteControlBlockEnd();
@@ -202,7 +205,7 @@ namespace JsonConverterGenerator
 
                     string elsePrefix = i > 0 ? "else " : "";
 
-                    WriteLine(@$"{elsePrefix}if (propertyName == ""{objectPropertyName}"")");
+                    WriteLine(@$"{elsePrefix}if (stringPropertyName == ""{objectPropertyName}"")");
                     WriteControlBlockStart();
 
                     WriteLine($"JsonConverter<{propertyTypeName}> converter = Get{propertyTypeName}Converter(options);");
