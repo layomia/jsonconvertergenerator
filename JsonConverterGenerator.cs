@@ -81,6 +81,7 @@ namespace JsonConverterGenerator
         private void WriteJsonConverterForObject(Type type)
         {
             WriteConverterDeclaration(type);
+            WritePropertyNameConstants(type);
             WriteConverterCaches(type);
             WriteConverterReadMethod(type);
             WriteBlankLine();
@@ -148,6 +149,32 @@ namespace JsonConverterGenerator
 
                 cachedTypes.Add(propertyType);
             }
+        }
+
+        private void WritePropertyNameConstants(Type type)
+        {
+            PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            foreach (PropertyInfo property in properties)
+            {
+                string objectPropertyName = property.Name;
+                int objectPropertyNameLength = objectPropertyName.Length;
+
+                StringBuilder sb = new StringBuilder();
+
+                sb.Append($"private static ReadOnlySpan<byte> {objectPropertyName}Bytes => new byte[{objectPropertyNameLength}] {{ (byte)'{objectPropertyName[0]}'");
+
+                for (int i = 1; i < objectPropertyNameLength; i++)
+                {
+                    sb.Append($", (byte)'{objectPropertyName[i]}'");
+                }
+
+                sb.Append(" };");
+
+                WriteLine(sb.ToString());
+            }
+
+            WriteBlankLine();
         }
 
         private void WriteThrowJsonException()
@@ -225,7 +252,7 @@ namespace JsonConverterGenerator
                     string elsePrefix = i > 0 ? "else " : "";
 
                     WriteSingleLineComment($"Determine if JSON property matches '{objectPropertyName}'");
-                    WriteLine(@$"{elsePrefix}if ({GeneratePropertyNameMatchCondition(objectPropertyName)})");
+                    WriteLine(@$"{elsePrefix}if ({objectPropertyName}Bytes.SequenceEqual(propertyName))");
                     WriteControlBlockStart();
 
                     if (propertyType == typeof(char))
@@ -276,20 +303,6 @@ namespace JsonConverterGenerator
             WriteControlBlockEnd();
         }
 
-        private string GeneratePropertyNameMatchCondition(string objectPropertyName)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            sb.Append($"propertyName.Length == {objectPropertyName.Length}");
-
-            for (int i = 0; i < objectPropertyName.Length; i++)
-            {
-                sb.Append($" && propertyName[{i}] == (byte)'{objectPropertyName[i]}'");
-            }
-
-            return sb.ToString();
-        }
-
         private void WriteSingleLineComment(string value)
         {
             if (!string.IsNullOrWhiteSpace(value))
@@ -327,26 +340,27 @@ namespace JsonConverterGenerator
                 Type propertyType = property.PropertyType;
                 string propertyTypeName = propertyType.Name;
                 string objectPropertyName = property.Name;
+                string jsonPropertyBytesVarName = $"{objectPropertyName}Bytes";
 
                 string currentValueName = $"value.{objectPropertyName}";
 
                 if (propertyType == typeof(int))
                 {
-                    WriteLine($@"writer.WriteNumber(""{objectPropertyName}"", {currentValueName});");
+                    WriteLine($@"writer.WriteNumber({jsonPropertyBytesVarName}, {currentValueName});");
                 }
                 else if (propertyType == typeof(char))
                 {
                     WriteLine($"char charValue = {currentValueName};");
                     WriteSingleLineComment("Assume we are running NetCore app");
-                    WriteLine($@"writer.WriteString(""{objectPropertyName}"", MemoryMarshal.CreateSpan(ref charValue, 1));");
+                    WriteLine($@"writer.WriteString({jsonPropertyBytesVarName}, MemoryMarshal.CreateSpan(ref charValue, 1));");
                 }
                 else if (s_simpleTypes.Contains(propertyType))
                 {
-                    WriteLine($@"writer.WriteString(""{objectPropertyName}"", {currentValueName});");
+                    WriteLine($@"writer.WriteString({jsonPropertyBytesVarName}, {currentValueName});");
                 }
                 else
                 {
-                    WriteLine($@"writer.WritePropertyName(""{objectPropertyName}"");");
+                    WriteLine($@"writer.WritePropertyName({jsonPropertyBytesVarName});");
 
                     WriteLine($"JsonConverter<{propertyTypeName}> converter = Get{propertyTypeName}Converter(options);");
 

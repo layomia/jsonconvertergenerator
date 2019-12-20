@@ -18,6 +18,12 @@ namespace JsonConverterGenerator
 {
     public class JsonConverterForJsonConverterGeneratorBasicPerson: JsonConverter<BasicPerson>
     {
+        private static ReadOnlySpan<byte> AgeBytes => new byte[3] { (byte)'A', (byte)'g', (byte)'e' };
+        private static ReadOnlySpan<byte> FirstBytes => new byte[5] { (byte)'F', (byte)'i', (byte)'r', (byte)'s', (byte)'t' };
+        private static ReadOnlySpan<byte> LastBytes => new byte[4] { (byte)'L', (byte)'a', (byte)'s', (byte)'t' };
+        private static ReadOnlySpan<byte> MiddleInitialBytes => new byte[13] { (byte)'M', (byte)'i', (byte)'d', (byte)'d', (byte)'l', (byte)'e', (byte)'I', (byte)'n', (byte)'i', (byte)'t', (byte)'i', (byte)'a', (byte)'l' };
+        private static ReadOnlySpan<byte> BirthDateBytes => new byte[9] { (byte)'B', (byte)'i', (byte)'r', (byte)'t', (byte)'h', (byte)'D', (byte)'a', (byte)'t', (byte)'e' };
+        
         public override BasicPerson Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             // Validate that the reader's cursor is at a start token.
@@ -48,22 +54,22 @@ namespace JsonConverterGenerator
                 // Try to match property name with object properties (case sensitive).
                 
                 // Determine if JSON property matches 'Age'.
-                if (propertyName.Length == 3 && propertyName[0] == (byte)'A' && propertyName[1] == (byte)'g' && propertyName[2] == (byte)'e')
+                if (AgeBytes.SequenceEqual(propertyName))
                 {
                     value.Age = reader.GetInt32();
                 }
                 // Determine if JSON property matches 'First'.
-                else if (propertyName.Length == 5 && propertyName[0] == (byte)'F' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'r' && propertyName[3] == (byte)'s' && propertyName[4] == (byte)'t')
+                else if (FirstBytes.SequenceEqual(propertyName))
                 {
                     value.First = reader.GetString();
                 }
                 // Determine if JSON property matches 'Last'.
-                else if (propertyName.Length == 4 && propertyName[0] == (byte)'L' && propertyName[1] == (byte)'a' && propertyName[2] == (byte)'s' && propertyName[3] == (byte)'t')
+                else if (LastBytes.SequenceEqual(propertyName))
                 {
                     value.Last = reader.GetString();
                 }
                 // Determine if JSON property matches 'MiddleInitial'.
-                else if (propertyName.Length == 13 && propertyName[0] == (byte)'M' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'d' && propertyName[3] == (byte)'d' && propertyName[4] == (byte)'l' && propertyName[5] == (byte)'e' && propertyName[6] == (byte)'I' && propertyName[7] == (byte)'n' && propertyName[8] == (byte)'i' && propertyName[9] == (byte)'t' && propertyName[10] == (byte)'i' && propertyName[11] == (byte)'a' && propertyName[12] == (byte)'l')
+                else if (MiddleInitialBytes.SequenceEqual(propertyName))
                 {
                     string tmp = reader.GetString();
                     if (string.IsNullOrEmpty(tmp))
@@ -74,7 +80,7 @@ namespace JsonConverterGenerator
                     value.MiddleInitial = tmp[0];
                 }
                 // Determine if JSON property matches 'BirthDate'.
-                else if (propertyName.Length == 9 && propertyName[0] == (byte)'B' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'r' && propertyName[3] == (byte)'t' && propertyName[4] == (byte)'h' && propertyName[5] == (byte)'D' && propertyName[6] == (byte)'a' && propertyName[7] == (byte)'t' && propertyName[8] == (byte)'e')
+                else if (BirthDateBytes.SequenceEqual(propertyName))
                 {
                     value.BirthDate = reader.GetDateTimeOffset();
                 }
@@ -93,17 +99,17 @@ namespace JsonConverterGenerator
             
             writer.WriteStartObject();
             
-            writer.WriteNumber("Age", value.Age);
+            writer.WriteNumber(AgeBytes, value.Age);
             
-            writer.WriteString("First", value.First);
+            writer.WriteString(FirstBytes, value.First);
             
-            writer.WriteString("Last", value.Last);
+            writer.WriteString(LastBytes, value.Last);
             
             char charValue = value.MiddleInitial;
             // Assume we are running NetCore app.
-            writer.WriteString("MiddleInitial", MemoryMarshal.CreateSpan(ref charValue, 1));
+            writer.WriteString(MiddleInitialBytes, MemoryMarshal.CreateSpan(ref charValue, 1));
             
-            writer.WriteString("BirthDate", value.BirthDate);
+            writer.WriteString(BirthDateBytes, value.BirthDate);
             
             writer.WriteEndObject();
         }
@@ -111,6 +117,10 @@ namespace JsonConverterGenerator
     
     public class JsonConverterForJsonConverterGeneratorBasicJsonAddress: JsonConverter<BasicJsonAddress>
     {
+        private static ReadOnlySpan<byte> StreetBytes => new byte[6] { (byte)'S', (byte)'t', (byte)'r', (byte)'e', (byte)'e', (byte)'t' };
+        private static ReadOnlySpan<byte> CityBytes => new byte[4] { (byte)'C', (byte)'i', (byte)'t', (byte)'y' };
+        private static ReadOnlySpan<byte> ZipBytes => new byte[3] { (byte)'Z', (byte)'i', (byte)'p' };
+        
         public override BasicJsonAddress Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             // Validate that the reader's cursor is at a start token.
@@ -141,17 +151,17 @@ namespace JsonConverterGenerator
                 // Try to match property name with object properties (case sensitive).
                 
                 // Determine if JSON property matches 'Street'.
-                if (propertyName.Length == 6 && propertyName[0] == (byte)'S' && propertyName[1] == (byte)'t' && propertyName[2] == (byte)'r' && propertyName[3] == (byte)'e' && propertyName[4] == (byte)'e' && propertyName[5] == (byte)'t')
+                if (StreetBytes.SequenceEqual(propertyName))
                 {
                     value.Street = reader.GetString();
                 }
                 // Determine if JSON property matches 'City'.
-                else if (propertyName.Length == 4 && propertyName[0] == (byte)'C' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'t' && propertyName[3] == (byte)'y')
+                else if (CityBytes.SequenceEqual(propertyName))
                 {
                     value.City = reader.GetString();
                 }
                 // Determine if JSON property matches 'Zip'.
-                else if (propertyName.Length == 3 && propertyName[0] == (byte)'Z' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'p')
+                else if (ZipBytes.SequenceEqual(propertyName))
                 {
                     value.Zip = reader.GetInt32();
                 }
@@ -170,11 +180,11 @@ namespace JsonConverterGenerator
             
             writer.WriteStartObject();
             
-            writer.WriteString("Street", value.Street);
+            writer.WriteString(StreetBytes, value.Street);
             
-            writer.WriteString("City", value.City);
+            writer.WriteString(CityBytes, value.City);
             
-            writer.WriteNumber("Zip", value.Zip);
+            writer.WriteNumber(ZipBytes, value.Zip);
             
             writer.WriteEndObject();
         }
