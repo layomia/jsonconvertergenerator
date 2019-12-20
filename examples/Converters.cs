@@ -10,6 +10,7 @@
 
 using System;
 using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -84,7 +85,27 @@ namespace JsonConverterGenerator
         
         public override void Write(Utf8JsonWriter writer, BasicPerson value, JsonSerializerOptions options)
         {
-            writer.WriteNullValue();
+            if (value == null)
+            {
+                writer.WriteNullValue();
+                return;
+            }
+            
+            writer.WriteStartObject();
+            
+            writer.WriteNumber("Age", value.Age);
+            
+            writer.WriteString("First", value.First);
+            
+            writer.WriteString("Last", value.Last);
+            
+            char charValue = value.MiddleInitial;
+            // Assume we are running NetCore app.
+            writer.WriteString("MiddleInitial", MemoryMarshal.CreateSpan(ref charValue, 1));
+            
+            writer.WriteString("BirthDate", value.BirthDate);
+            
+            writer.WriteEndObject();
         }
     }
     
@@ -141,7 +162,21 @@ namespace JsonConverterGenerator
         
         public override void Write(Utf8JsonWriter writer, BasicJsonAddress value, JsonSerializerOptions options)
         {
-            writer.WriteNullValue();
+            if (value == null)
+            {
+                writer.WriteNullValue();
+                return;
+            }
+            
+            writer.WriteStartObject();
+            
+            writer.WriteString("Street", value.Street);
+            
+            writer.WriteString("City", value.City);
+            
+            writer.WriteNumber("Zip", value.Zip);
+            
+            writer.WriteEndObject();
         }
     }
 }

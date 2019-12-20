@@ -46,6 +46,7 @@ namespace JsonConverterGenerator
 
             WriteLine("using System;");
             WriteLine("using System.Buffers;");
+            WriteLine("using System.Runtime.InteropServices;");
             WriteLine("using System.Text.Json;");
             WriteLine("using System.Text.Json.Serialization;");
 
@@ -306,7 +307,68 @@ namespace JsonConverterGenerator
                 methodName: "Write",
                 parameterListValue: $"Utf8JsonWriter writer, {type.Name} value, JsonSerializerOptions options");
 
-            WriteLine($"writer.WriteNullValue();");
+            // Write null and return if value is null.
+            WriteLine("if (value == null)");
+            WriteControlBlockStart();
+            WriteLine("writer.WriteNullValue();");
+            WriteLine("return;");
+            WriteControlBlockEnd();
+
+            WriteBlankLine();
+
+            WriteLine("writer.WriteStartObject();");
+
+            WriteBlankLine();
+
+            PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            foreach (PropertyInfo property in properties)
+            {
+                Type propertyType = property.PropertyType;
+                string propertyTypeName = propertyType.Name;
+                string objectPropertyName = property.Name;
+
+                string currentValueName = $"value.{objectPropertyName}";
+
+                if (propertyType == typeof(int))
+                {
+                    WriteLine($@"writer.WriteNumber(""{objectPropertyName}"", {currentValueName});");
+                }
+                else if (propertyType == typeof(char))
+                {
+                    WriteLine($"char charValue = {currentValueName};");
+                    WriteSingleLineComment("Assume we are running NetCore app");
+                    WriteLine($@"writer.WriteString(""{objectPropertyName}"", MemoryMarshal.CreateSpan(ref charValue, 1));");
+                }
+                else if (s_simpleTypes.Contains(propertyType))
+                {
+                    WriteLine($@"writer.WriteString(""{objectPropertyName}"", {currentValueName});");
+                }
+                else
+                {
+                    WriteLine($@"writer.WritePropertyName(""{objectPropertyName}"");");
+
+                    WriteLine($"JsonConverter<{propertyTypeName}> converter = Get{propertyTypeName}Converter(options);");
+
+                    WriteLine("if (converter != null)");
+                    WriteControlBlockStart();
+
+                    WriteLine($"converter.Write(writer, {currentValueName}, options);");
+
+                    WriteControlBlockEnd();
+
+                    WriteLine("else");
+                    WriteControlBlockStart();
+
+                    WriteLine($"value.{objectPropertyName} = JsonSerializer.Serialize<{propertyTypeName}>({currentValueName}, options);");
+
+                    WriteControlBlockEnd();
+                }
+
+                WriteBlankLine();
+            }
+
+            WriteLine("writer.WriteEndObject();");
 
             WriteControlBlockEnd();
         }
