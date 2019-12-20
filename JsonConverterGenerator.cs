@@ -46,7 +46,6 @@ namespace JsonConverterGenerator
 
             WriteLine("using System;");
             WriteLine("using System.Buffers;");
-            WriteLine("using System.Buffers.Text;");
             WriteLine("using System.Text.Json;");
             WriteLine("using System.Text.Json.Serialization;");
 
@@ -228,19 +227,7 @@ namespace JsonConverterGenerator
                     WriteLine(@$"{elsePrefix}if ({GeneratePropertyNameMatchCondition(objectPropertyName)})");
                     WriteControlBlockStart();
 
-                    if (propertyType == typeof(int))
-                    {
-                        WriteLine("if (Utf8Parser.TryParse(propertyName, out int tmp, out int bytesConsumed) && propertyName.Length == bytesConsumed)");
-                        WriteControlBlockStart();
-                        WriteLine($"value.{objectPropertyName} = tmp;"); ;
-                        WriteControlBlockEnd();
-
-                        WriteLine("else");
-                        WriteControlBlockStart();
-                        WriteThrowJsonException();
-                        WriteControlBlockEnd();
-                    }
-                    else if (propertyType == typeof(char))
+                    if (propertyType == typeof(char))
                     {
                         WriteLine("string tmp = reader.GetString();");
                         WriteLine("if (string.IsNullOrEmpty(tmp))");

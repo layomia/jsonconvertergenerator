@@ -10,8 +10,6 @@
 
 using System;
 using System.Buffers;
-using System.Buffers.Text;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -51,14 +49,7 @@ namespace JsonConverterGenerator
                 // Determine if JSON property matches 'Age'.
                 if (propertyName.Length == 3 && propertyName[0] == (byte)'A' && propertyName[1] == (byte)'g' && propertyName[2] == (byte)'e')
                 {
-                    if (Utf8Parser.TryParse(propertyName, out int tmp, out int bytesConsumed) && propertyName.Length == bytesConsumed)
-                    {
-                        value.Age = tmp;
-                    }
-                    else
-                    {
-                        throw new JsonException();
-                    }
+                    value.Age = reader.GetInt32();
                 }
                 // Determine if JSON property matches 'First'.
                 else if (propertyName.Length == 5 && propertyName[0] == (byte)'F' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'r' && propertyName[3] == (byte)'s' && propertyName[4] == (byte)'t')
@@ -141,14 +132,7 @@ namespace JsonConverterGenerator
                 // Determine if JSON property matches 'Zip'.
                 else if (propertyName.Length == 3 && propertyName[0] == (byte)'Z' && propertyName[1] == (byte)'i' && propertyName[2] == (byte)'p')
                 {
-                    if (Utf8Parser.TryParse(propertyName, out int tmp, out int bytesConsumed) && propertyName.Length == bytesConsumed)
-                    {
-                        value.Zip = tmp;
-                    }
-                    else
-                    {
-                        throw new JsonException();
-                    }
+                    value.Zip = reader.GetInt32();
                 }
             }
             
