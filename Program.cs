@@ -9,6 +9,7 @@ namespace JsonConverterGenerator
         private static readonly Type[] s_typesToGenerateConvertersFor = new Type[]
         {
             typeof(BasicPerson),
+            typeof(BasicPersonWithCollections),
             typeof(int[]),
             typeof(BasicJsonAddress),
         };

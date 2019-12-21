@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -44,8 +46,10 @@ namespace JsonConverterGenerator
 
             WriteBlankLine();
 
+            // TODO: Dynamically generate this with input types as a factor.
             WriteLine("using System;");
             WriteLine("using System.Buffers;");
+            WriteLine("using System.Collections.Generic;");
             WriteLine("using System.Runtime.InteropServices;");
             WriteLine("using System.Text.Json;");
             WriteLine("using System.Text.Json.Serialization;");
@@ -53,7 +57,7 @@ namespace JsonConverterGenerator
             WriteBlankLine();
 
             BeginNewControlBlock($"namespace {_outputNamespace}");
-            
+
             for (int i = 1; i < types.Length + 1; i++)
             {
                 if (WriteJsonConverterForType(types[i - 1]) && i < types.Length - 1)
@@ -104,6 +108,36 @@ namespace JsonConverterGenerator
             WriteControlBlockStart();
         }
 
+        private static string GetCompilableTypeName(Type type)
+        {
+            string typeName = type.Name;
+
+            if (!type.IsGenericType)
+            {
+                return typeName;
+            }
+
+            // TODO: Guard against open generics?
+            Debug.Assert(!type.ContainsGenericParameters);
+
+            int backTickIndex = typeName.IndexOf('`');
+            string baseName = typeName.Substring(0, backTickIndex);
+
+
+            return $"{baseName}<{string.Join(',', type.GetGenericArguments().Select(arg => GetCompilableTypeName(arg)))}>";
+        }
+
+        private static string GetReadableTypeName(Type type)
+        {
+            string compilableName = GetCompilableTypeName(type);
+            return GetReadableTypeName(compilableName);
+        }
+
+        private static string GetReadableTypeName(string compilableName)
+        {
+            return compilableName.Replace("<", "").Replace(">", "").Replace(",", "");
+        }
+
         private void WriteConverterCaches(Type type)
         {
             PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -118,12 +152,13 @@ namespace JsonConverterGenerator
                     continue;
                 }
 
-                string propertyTypeName = propertyType.Name;
-                
-                string converterRetrievalSentinelFieldName = $"_checkedFor{propertyTypeName}Converter";
-                string converterPropertyName = $"{propertyTypeName}Converter";
+                string compilableTypeName = GetCompilableTypeName(propertyType);
+                string readableTypeName = GetReadableTypeName(compilableTypeName);
+
+                string converterRetrievalSentinelFieldName = $"_checkedFor{readableTypeName}Converter";
+                string converterPropertyName = $"{readableTypeName}Converter";
                 string converterFieldName = $"_{char.ToLower(converterPropertyName[0])}{converterPropertyName.Substring(1)}";
-                string converterReturnTypeName = $"JsonConverter<{propertyTypeName}>";
+                string converterReturnTypeName = $"JsonConverter<{compilableTypeName}>";
 
                 WriteLine($"private bool {converterRetrievalSentinelFieldName};");
                 WriteLine($"private {converterReturnTypeName} {converterFieldName};");
@@ -134,7 +169,7 @@ namespace JsonConverterGenerator
                 WriteLine($"if (!{converterRetrievalSentinelFieldName} && {converterFieldName} == null && options != null)");
                 WriteControlBlockStart();
 
-                WriteLine($"{converterFieldName} = ({converterReturnTypeName})options.GetConverter(typeof({propertyTypeName}));");
+                WriteLine($"{converterFieldName} = ({converterReturnTypeName})options.GetConverter(typeof({compilableTypeName}));");
                 WriteLine($"{converterRetrievalSentinelFieldName} = true;");
 
                 WriteControlBlockEnd();
@@ -144,7 +179,7 @@ namespace JsonConverterGenerator
                 WriteLine($"return {converterFieldName};");
 
                 WriteControlBlockEnd();
-                
+
                 WriteBlankLine();
 
                 cachedTypes.Add(propertyType);
@@ -247,7 +282,9 @@ namespace JsonConverterGenerator
                     PropertyInfo property = properties[i];
                     Type propertyType = property.PropertyType;
                     string objectPropertyName = property.Name;
-                    string propertyTypeName = propertyType.Name;
+
+                    string compilableTypeName = GetCompilableTypeName(propertyType);
+                    string readableTypeName = GetReadableTypeName(compilableTypeName);
 
                     string elsePrefix = i > 0 ? "else " : "";
 
@@ -273,7 +310,7 @@ namespace JsonConverterGenerator
                     }
                     else
                     {
-                        WriteLine($"JsonConverter<{propertyTypeName}> converter = Get{propertyTypeName}Converter(options);");
+                        WriteLine($"JsonConverter<{compilableTypeName}> converter = Get{readableTypeName}Converter(options);");
 
                         WriteLine("if (converter != null)");
                         WriteControlBlockStart();
@@ -285,7 +322,7 @@ namespace JsonConverterGenerator
                         WriteLine("else");
                         WriteControlBlockStart();
 
-                        WriteLine($"value.{objectPropertyName} = JsonSerializer.Deserialize<{propertyTypeName}>(ref reader, options);");
+                        WriteLine($"value.{objectPropertyName} = JsonSerializer.Deserialize<{compilableTypeName}>(ref reader, options);");
 
                         WriteControlBlockEnd();
                     }
@@ -338,8 +375,11 @@ namespace JsonConverterGenerator
             foreach (PropertyInfo property in properties)
             {
                 Type propertyType = property.PropertyType;
-                string propertyTypeName = propertyType.Name;
                 string objectPropertyName = property.Name;
+
+                string compilableTypeName = GetCompilableTypeName(propertyType);
+                string readableTypeName = GetReadableTypeName(compilableTypeName);
+
                 string jsonPropertyBytesVarName = $"{objectPropertyName}Bytes";
 
                 string currentValueName = $"value.{objectPropertyName}";
@@ -362,7 +402,10 @@ namespace JsonConverterGenerator
                 {
                     WriteLine($@"writer.WritePropertyName({jsonPropertyBytesVarName});");
 
-                    WriteLine($"JsonConverter<{propertyTypeName}> converter = Get{propertyTypeName}Converter(options);");
+                    // Confine converter name to local scope.
+                    WriteControlBlockStart();
+
+                    WriteLine($"JsonConverter<{compilableTypeName}> converter = Get{readableTypeName}Converter(options);");
 
                     WriteLine("if (converter != null)");
                     WriteControlBlockStart();
@@ -374,8 +417,9 @@ namespace JsonConverterGenerator
                     WriteLine("else");
                     WriteControlBlockStart();
 
-                    WriteLine($"value.{objectPropertyName} = JsonSerializer.Serialize<{propertyTypeName}>({currentValueName}, options);");
+                    WriteLine($"JsonSerializer.Serialize<{compilableTypeName}>(writer, {currentValueName}, options);");
 
+                    WriteControlBlockEnd();
                     WriteControlBlockEnd();
                 }
 
@@ -438,7 +482,7 @@ namespace JsonConverterGenerator
             }
 
             _codeBuilder.Append(returnTypeName);
-            
+
             _codeBuilder.Append(" ");
 
             _codeBuilder.Append(methodName);

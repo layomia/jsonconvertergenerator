@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace JsonConverterGenerator
 {
@@ -9,7 +10,18 @@ namespace JsonConverterGenerator
         public string Last { get; set; }
         public char MiddleInitial { get; set; }
         public DateTimeOffset BirthDate { get; set; }
-        //public List<string> PhoneNumbers { get; set; }
+    }
+
+    public class BasicPersonWithCollections
+    {
+        public int Age { get; set; }
+        public string First { get; set; }
+        public ISet<List<Dictionary<string,int>>> RandomData { get; set; }
+        public string Last { get; set; }
+        public char MiddleInitial { get; set; }
+        public DateTimeOffset BirthDate { get; set; }
+        public List<string> OtherName { get; set; }
+        public Dictionary<string, int> PhoneNumbers { get; set; }
         //public BasicJsonAddress Address { get; set; }
     }
 
