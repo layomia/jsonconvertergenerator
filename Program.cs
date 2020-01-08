@@ -12,6 +12,7 @@ namespace JsonConverterGenerator
             typeof(BasicPersonWithCollections),
             typeof(int[]),
             typeof(BasicJsonAddress),
+            typeof(BasicPersonWithComplexTypes),
         };
 
         static void Main(string[] args)

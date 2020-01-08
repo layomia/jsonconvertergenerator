@@ -22,7 +22,14 @@ namespace JsonConverterGenerator
         public DateTimeOffset BirthDate { get; set; }
         public List<string> OtherName { get; set; }
         public Dictionary<string, int> PhoneNumbers { get; set; }
-        //public BasicJsonAddress Address { get; set; }
+    }
+
+    public class BasicPersonWithComplexTypes
+    {
+        public int Age { get; set; }
+        public string First { get; set; }
+        public BasicJsonAddress HomeAddress { get; set; }
+        public List<BasicJsonAddress> OtherAddresses { get; set; }
     }
 
     public class BasicJsonAddress
