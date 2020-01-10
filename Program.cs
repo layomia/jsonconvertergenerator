@@ -8,11 +8,11 @@ namespace JsonConverterGenerator
     {
         private static readonly Type[] s_typesToGenerateConvertersFor = new Type[]
         {
-            typeof(BasicPerson),
-            typeof(BasicPersonWithCollections),
-            typeof(int[]),
-            typeof(BasicJsonAddress),
-            typeof(BasicPersonWithComplexTypes),
+            typeof(LoginViewModel),
+            typeof(Location),
+            typeof(IndexViewModel),
+            typeof(MyEventsListerViewModel),
+            typeof(CollectionsOfPrimitives),
         };
 
         static void Main(string[] args)

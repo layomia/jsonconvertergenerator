@@ -123,19 +123,12 @@ namespace JsonConverterGenerator
             int backTickIndex = typeName.IndexOf('`');
             string baseName = typeName.Substring(0, backTickIndex);
 
-
             return $"{baseName}<{string.Join(',', type.GetGenericArguments().Select(arg => GetCompilableTypeName(arg)))}>";
-        }
-
-        private static string GetReadableTypeName(Type type)
-        {
-            string compilableName = GetCompilableTypeName(type);
-            return GetReadableTypeName(compilableName);
         }
 
         private static string GetReadableTypeName(string compilableName)
         {
-            return compilableName.Replace("<", "").Replace(">", "").Replace(",", "");
+            return compilableName.Replace("<", "").Replace(">", "").Replace(",", "").Replace("[]", "Array");
         }
 
         private void WriteConverterCaches(Type type)
@@ -280,6 +273,13 @@ namespace JsonConverterGenerator
                 for (int i = 0; i < properties.Length; i++)
                 {
                     PropertyInfo property = properties[i];
+
+                    // Ignore readonly properties.
+                    if (!property.CanWrite)
+                    {
+                        continue;
+                    }
+
                     Type propertyType = property.PropertyType;
                     string objectPropertyName = property.Name;
 
@@ -393,6 +393,10 @@ namespace JsonConverterGenerator
                     WriteLine($"char charValue = {currentValueName};");
                     WriteSingleLineComment("Assume we are running NetCore app");
                     WriteLine($@"writer.WriteString({jsonPropertyBytesVarName}, MemoryMarshal.CreateSpan(ref charValue, 1));");
+                }
+                else if (propertyType == typeof(bool))
+                {
+                    WriteLine($@"writer.WriteBoolean({jsonPropertyBytesVarName}, {currentValueName});");
                 }
                 else if (s_simpleTypes.Contains(propertyType))
                 {
