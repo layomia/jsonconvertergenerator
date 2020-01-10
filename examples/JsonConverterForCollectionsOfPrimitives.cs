@@ -17,68 +17,20 @@ using System.Text.Json.Serialization;
 
 namespace JsonConverterGenerator
 {
-    public class JsonConverterForCollectionsOfPrimitives: JsonConverter<CollectionsOfPrimitives>
+    public sealed class JsonConverterForCollectionsOfPrimitives : JsonConverter<CollectionsOfPrimitives>
     {
+        private JsonConverterForCollectionsOfPrimitives() {}
+        
+        public static readonly JsonConverterForCollectionsOfPrimitives Instance = new JsonConverterForCollectionsOfPrimitives();
+        
         private static ReadOnlySpan<byte> ByteArrayBytes => new byte[9] { (byte)'B', (byte)'y', (byte)'t', (byte)'e', (byte)'A', (byte)'r', (byte)'r', (byte)'a', (byte)'y' };
         private static ReadOnlySpan<byte> DateTimeArrayBytes => new byte[13] { (byte)'D', (byte)'a', (byte)'t', (byte)'e', (byte)'T', (byte)'i', (byte)'m', (byte)'e', (byte)'A', (byte)'r', (byte)'r', (byte)'a', (byte)'y' };
         private static ReadOnlySpan<byte> DictionaryBytes => new byte[10] { (byte)'D', (byte)'i', (byte)'c', (byte)'t', (byte)'i', (byte)'o', (byte)'n', (byte)'a', (byte)'r', (byte)'y' };
         private static ReadOnlySpan<byte> ListOfIntBytes => new byte[9] { (byte)'L', (byte)'i', (byte)'s', (byte)'t', (byte)'O', (byte)'f', (byte)'I', (byte)'n', (byte)'t' };
         
-        private bool _checkedForByteArrayConverter;
-        private JsonConverter<Byte[]> _byteArrayConverter;
-        private JsonConverter<Byte[]> GetByteArrayConverter(JsonSerializerOptions options)
-        {
-            if (!_checkedForByteArrayConverter && _byteArrayConverter == null && options != null)
-            {
-                _byteArrayConverter = (JsonConverter<Byte[]>)options.GetConverter(typeof(Byte[]));
-                _checkedForByteArrayConverter = true;
-            }
-            
-            return _byteArrayConverter;
-        }
-        
-        private bool _checkedForDateTimeArrayConverter;
-        private JsonConverter<DateTime[]> _dateTimeArrayConverter;
-        private JsonConverter<DateTime[]> GetDateTimeArrayConverter(JsonSerializerOptions options)
-        {
-            if (!_checkedForDateTimeArrayConverter && _dateTimeArrayConverter == null && options != null)
-            {
-                _dateTimeArrayConverter = (JsonConverter<DateTime[]>)options.GetConverter(typeof(DateTime[]));
-                _checkedForDateTimeArrayConverter = true;
-            }
-            
-            return _dateTimeArrayConverter;
-        }
-        
-        private bool _checkedForDictionaryInt32StringConverter;
-        private JsonConverter<Dictionary<Int32,String>> _dictionaryInt32StringConverter;
-        private JsonConverter<Dictionary<Int32,String>> GetDictionaryInt32StringConverter(JsonSerializerOptions options)
-        {
-            if (!_checkedForDictionaryInt32StringConverter && _dictionaryInt32StringConverter == null && options != null)
-            {
-                _dictionaryInt32StringConverter = (JsonConverter<Dictionary<Int32,String>>)options.GetConverter(typeof(Dictionary<Int32,String>));
-                _checkedForDictionaryInt32StringConverter = true;
-            }
-            
-            return _dictionaryInt32StringConverter;
-        }
-        
-        private bool _checkedForListInt32Converter;
-        private JsonConverter<List<Int32>> _listInt32Converter;
-        private JsonConverter<List<Int32>> GetListInt32Converter(JsonSerializerOptions options)
-        {
-            if (!_checkedForListInt32Converter && _listInt32Converter == null && options != null)
-            {
-                _listInt32Converter = (JsonConverter<List<Int32>>)options.GetConverter(typeof(List<Int32>));
-                _checkedForListInt32Converter = true;
-            }
-            
-            return _listInt32Converter;
-        }
-        
         public override CollectionsOfPrimitives Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            // Validate that the reader's cursor is at a start token.
+            // Validate that the reader's cursor is at a start object token.
             if (reader.TokenType != JsonTokenType.StartObject)
             {
                 throw new JsonException();
@@ -108,54 +60,22 @@ namespace JsonConverterGenerator
                 // Determine if JSON property matches 'ByteArray'.
                 if (ByteArrayBytes.SequenceEqual(propertyName))
                 {
-                    JsonConverter<Byte[]> converter = GetByteArrayConverter(options);
-                    if (converter != null)
-                    {
-                        value.ByteArray = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.ByteArray = JsonSerializer.Deserialize<Byte[]>(ref reader, options);
-                    }
+                    reader.GetBytesFromBase64();
                 }
                 // Determine if JSON property matches 'DateTimeArray'.
                 else if (DateTimeArrayBytes.SequenceEqual(propertyName))
                 {
-                    JsonConverter<DateTime[]> converter = GetDateTimeArrayConverter(options);
-                    if (converter != null)
-                    {
-                        value.DateTimeArray = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.DateTimeArray = JsonSerializer.Deserialize<DateTime[]>(ref reader, options);
-                    }
+                    value.DateTimeArray = JsonConverterForDateTimeArray.Instance.Read(ref reader, typeToConvert, options);
                 }
                 // Determine if JSON property matches 'Dictionary'.
                 else if (DictionaryBytes.SequenceEqual(propertyName))
                 {
-                    JsonConverter<Dictionary<Int32,String>> converter = GetDictionaryInt32StringConverter(options);
-                    if (converter != null)
-                    {
-                        value.Dictionary = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.Dictionary = JsonSerializer.Deserialize<Dictionary<Int32,String>>(ref reader, options);
-                    }
+                    value.Dictionary = JsonConverterForDictionaryStringString.Instance.Read(ref reader, typeToConvert, options);
                 }
                 // Determine if JSON property matches 'ListOfInt'.
                 else if (ListOfIntBytes.SequenceEqual(propertyName))
                 {
-                    JsonConverter<List<Int32>> converter = GetListInt32Converter(options);
-                    if (converter != null)
-                    {
-                        value.ListOfInt = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.ListOfInt = JsonSerializer.Deserialize<List<Int32>>(ref reader, options);
-                    }
+                    value.ListOfInt = JsonConverterForListInt32.Instance.Read(ref reader, typeToConvert, options);
                 }
             }
             
@@ -172,57 +92,16 @@ namespace JsonConverterGenerator
             
             writer.WriteStartObject();
             
-            writer.WritePropertyName(ByteArrayBytes);
-            {
-                JsonConverter<Byte[]> converter = GetByteArrayConverter(options);
-                if (converter != null)
-                {
-                    converter.Write(writer, value.ByteArray, options);
-                }
-                else
-                {
-                    JsonSerializer.Serialize<Byte[]>(writer, value.ByteArray, options);
-                }
-            }
+            writer.WriteBase64String(ByteArrayBytes, value.ByteArray);
             
             writer.WritePropertyName(DateTimeArrayBytes);
-            {
-                JsonConverter<DateTime[]> converter = GetDateTimeArrayConverter(options);
-                if (converter != null)
-                {
-                    converter.Write(writer, value.DateTimeArray, options);
-                }
-                else
-                {
-                    JsonSerializer.Serialize<DateTime[]>(writer, value.DateTimeArray, options);
-                }
-            }
+            JsonConverterForDateTimeArray.Instance.Write(writer, value.DateTimeArray, options);
             
             writer.WritePropertyName(DictionaryBytes);
-            {
-                JsonConverter<Dictionary<Int32,String>> converter = GetDictionaryInt32StringConverter(options);
-                if (converter != null)
-                {
-                    converter.Write(writer, value.Dictionary, options);
-                }
-                else
-                {
-                    JsonSerializer.Serialize<Dictionary<Int32,String>>(writer, value.Dictionary, options);
-                }
-            }
+            JsonConverterForDictionaryStringString.Instance.Write(writer, value.Dictionary, options);
             
             writer.WritePropertyName(ListOfIntBytes);
-            {
-                JsonConverter<List<Int32>> converter = GetListInt32Converter(options);
-                if (converter != null)
-                {
-                    converter.Write(writer, value.ListOfInt, options);
-                }
-                else
-                {
-                    JsonSerializer.Serialize<List<Int32>>(writer, value.ListOfInt, options);
-                }
-            }
+            JsonConverterForListInt32.Instance.Write(writer, value.ListOfInt, options);
             
             writer.WriteEndObject();
         }

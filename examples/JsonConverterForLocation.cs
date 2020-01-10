@@ -17,8 +17,12 @@ using System.Text.Json.Serialization;
 
 namespace JsonConverterGenerator
 {
-    public class JsonConverterForLocation: JsonConverter<Location>
+    public sealed class JsonConverterForLocation : JsonConverter<Location>
     {
+        private JsonConverterForLocation() {}
+        
+        public static readonly JsonConverterForLocation Instance = new JsonConverterForLocation();
+        
         private static ReadOnlySpan<byte> IdBytes => new byte[2] { (byte)'I', (byte)'d' };
         private static ReadOnlySpan<byte> Address1Bytes => new byte[8] { (byte)'A', (byte)'d', (byte)'d', (byte)'r', (byte)'e', (byte)'s', (byte)'s', (byte)'1' };
         private static ReadOnlySpan<byte> Address2Bytes => new byte[8] { (byte)'A', (byte)'d', (byte)'d', (byte)'r', (byte)'e', (byte)'s', (byte)'s', (byte)'2' };
@@ -31,7 +35,7 @@ namespace JsonConverterGenerator
         
         public override Location Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            // Validate that the reader's cursor is at a start token.
+            // Validate that the reader's cursor is at a start object token.
             if (reader.TokenType != JsonTokenType.StartObject)
             {
                 throw new JsonException();

@@ -17,17 +17,18 @@ using System.Text.Json.Serialization;
 
 namespace JsonConverterGenerator
 {
-    public sealed class JsonConverterForLoginViewModel : JsonConverter<LoginViewModel>
+    public sealed class JsonConverterForMyEventsListerItemTask : JsonConverter<MyEventsListerItemTask>
     {
-        private JsonConverterForLoginViewModel() {}
+        private JsonConverterForMyEventsListerItemTask() {}
         
-        public static readonly JsonConverterForLoginViewModel Instance = new JsonConverterForLoginViewModel();
+        public static readonly JsonConverterForMyEventsListerItemTask Instance = new JsonConverterForMyEventsListerItemTask();
         
-        private static ReadOnlySpan<byte> EmailBytes => new byte[5] { (byte)'E', (byte)'m', (byte)'a', (byte)'i', (byte)'l' };
-        private static ReadOnlySpan<byte> PasswordBytes => new byte[8] { (byte)'P', (byte)'a', (byte)'s', (byte)'s', (byte)'w', (byte)'o', (byte)'r', (byte)'d' };
-        private static ReadOnlySpan<byte> RememberMeBytes => new byte[10] { (byte)'R', (byte)'e', (byte)'m', (byte)'e', (byte)'m', (byte)'b', (byte)'e', (byte)'r', (byte)'M', (byte)'e' };
+        private static ReadOnlySpan<byte> NameBytes => new byte[4] { (byte)'N', (byte)'a', (byte)'m', (byte)'e' };
+        private static ReadOnlySpan<byte> StartDateBytes => new byte[9] { (byte)'S', (byte)'t', (byte)'a', (byte)'r', (byte)'t', (byte)'D', (byte)'a', (byte)'t', (byte)'e' };
+        private static ReadOnlySpan<byte> EndDateBytes => new byte[7] { (byte)'E', (byte)'n', (byte)'d', (byte)'D', (byte)'a', (byte)'t', (byte)'e' };
+        private static ReadOnlySpan<byte> FormattedDateBytes => new byte[13] { (byte)'F', (byte)'o', (byte)'r', (byte)'m', (byte)'a', (byte)'t', (byte)'t', (byte)'e', (byte)'d', (byte)'D', (byte)'a', (byte)'t', (byte)'e' };
         
-        public override LoginViewModel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override MyEventsListerItemTask Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             // Validate that the reader's cursor is at a start object token.
             if (reader.TokenType != JsonTokenType.StartObject)
@@ -36,7 +37,7 @@ namespace JsonConverterGenerator
             }
             
             // Create returned object. This assumes type has public parameterless ctor.
-            LoginViewModel value = new LoginViewModel();
+            MyEventsListerItemTask value = new MyEventsListerItemTask();
             
             // Read all properties.
             while (true)
@@ -56,27 +57,27 @@ namespace JsonConverterGenerator
                 
                 // Try to match property name with object properties (case sensitive).
                 
-                // Determine if JSON property matches 'Email'.
-                if (EmailBytes.SequenceEqual(propertyName))
+                // Determine if JSON property matches 'Name'.
+                if (NameBytes.SequenceEqual(propertyName))
                 {
-                    value.Email = reader.GetString();
+                    value.Name = reader.GetString();
                 }
-                // Determine if JSON property matches 'Password'.
-                else if (PasswordBytes.SequenceEqual(propertyName))
+                // Determine if JSON property matches 'StartDate'.
+                else if (StartDateBytes.SequenceEqual(propertyName))
                 {
-                    value.Password = reader.GetString();
+                    value.StartDate = reader.GetDateTimeOffset();
                 }
-                // Determine if JSON property matches 'RememberMe'.
-                else if (RememberMeBytes.SequenceEqual(propertyName))
+                // Determine if JSON property matches 'EndDate'.
+                else if (EndDateBytes.SequenceEqual(propertyName))
                 {
-                    value.RememberMe = reader.GetBoolean();
+                    value.EndDate = reader.GetDateTimeOffset();
                 }
             }
             
             return value;
         }
         
-        public override void Write(Utf8JsonWriter writer, LoginViewModel value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, MyEventsListerItemTask value, JsonSerializerOptions options)
         {
             if (value == null)
             {
@@ -86,11 +87,13 @@ namespace JsonConverterGenerator
             
             writer.WriteStartObject();
             
-            writer.WriteString(EmailBytes, value.Email);
+            writer.WriteString(NameBytes, value.Name);
             
-            writer.WriteString(PasswordBytes, value.Password);
+            writer.WriteString(StartDateBytes, value.StartDate);
             
-            writer.WriteBoolean(RememberMeBytes, value.RememberMe);
+            writer.WriteString(EndDateBytes, value.EndDate);
+            
+            writer.WriteString(FormattedDateBytes, value.FormattedDate);
             
             writer.WriteEndObject();
         }

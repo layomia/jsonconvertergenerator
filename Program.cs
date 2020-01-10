@@ -28,7 +28,6 @@ namespace JsonConverterGenerator
                 File.WriteAllText(Path.Join(
                     examplesDirPath,
                     $"JsonConverterFor{CodeGenerator.GetReadableTypeName(pair.Key)}.cs"), pair.Value);
-                Console.WriteLine(generatedCode);
             }
         }
     }

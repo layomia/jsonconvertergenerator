@@ -17,28 +17,19 @@ using System.Text.Json.Serialization;
 
 namespace JsonConverterGenerator
 {
-    public class JsonConverterForMyEventsListerViewModel: JsonConverter<MyEventsListerViewModel>
+    public sealed class JsonConverterForMyEventsListerViewModel : JsonConverter<MyEventsListerViewModel>
     {
+        private JsonConverterForMyEventsListerViewModel() {}
+        
+        public static readonly JsonConverterForMyEventsListerViewModel Instance = new JsonConverterForMyEventsListerViewModel();
+        
         private static ReadOnlySpan<byte> CurrentEventsBytes => new byte[13] { (byte)'C', (byte)'u', (byte)'r', (byte)'r', (byte)'e', (byte)'n', (byte)'t', (byte)'E', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)'s' };
         private static ReadOnlySpan<byte> FutureEventsBytes => new byte[12] { (byte)'F', (byte)'u', (byte)'t', (byte)'u', (byte)'r', (byte)'e', (byte)'E', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)'s' };
         private static ReadOnlySpan<byte> PastEventsBytes => new byte[10] { (byte)'P', (byte)'a', (byte)'s', (byte)'t', (byte)'E', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)'s' };
         
-        private bool _checkedForListMyEventsListerItemConverter;
-        private JsonConverter<List<MyEventsListerItem>> _listMyEventsListerItemConverter;
-        private JsonConverter<List<MyEventsListerItem>> GetListMyEventsListerItemConverter(JsonSerializerOptions options)
-        {
-            if (!_checkedForListMyEventsListerItemConverter && _listMyEventsListerItemConverter == null && options != null)
-            {
-                _listMyEventsListerItemConverter = (JsonConverter<List<MyEventsListerItem>>)options.GetConverter(typeof(List<MyEventsListerItem>));
-                _checkedForListMyEventsListerItemConverter = true;
-            }
-            
-            return _listMyEventsListerItemConverter;
-        }
-        
         public override MyEventsListerViewModel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            // Validate that the reader's cursor is at a start token.
+            // Validate that the reader's cursor is at a start object token.
             if (reader.TokenType != JsonTokenType.StartObject)
             {
                 throw new JsonException();
@@ -68,41 +59,17 @@ namespace JsonConverterGenerator
                 // Determine if JSON property matches 'CurrentEvents'.
                 if (CurrentEventsBytes.SequenceEqual(propertyName))
                 {
-                    JsonConverter<List<MyEventsListerItem>> converter = GetListMyEventsListerItemConverter(options);
-                    if (converter != null)
-                    {
-                        value.CurrentEvents = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.CurrentEvents = JsonSerializer.Deserialize<List<MyEventsListerItem>>(ref reader, options);
-                    }
+                    value.CurrentEvents = JsonConverterForListMyEventsListerItem.Instance.Read(ref reader, typeToConvert, options);
                 }
                 // Determine if JSON property matches 'FutureEvents'.
                 else if (FutureEventsBytes.SequenceEqual(propertyName))
                 {
-                    JsonConverter<List<MyEventsListerItem>> converter = GetListMyEventsListerItemConverter(options);
-                    if (converter != null)
-                    {
-                        value.FutureEvents = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.FutureEvents = JsonSerializer.Deserialize<List<MyEventsListerItem>>(ref reader, options);
-                    }
+                    value.FutureEvents = JsonConverterForListMyEventsListerItem.Instance.Read(ref reader, typeToConvert, options);
                 }
                 // Determine if JSON property matches 'PastEvents'.
                 else if (PastEventsBytes.SequenceEqual(propertyName))
                 {
-                    JsonConverter<List<MyEventsListerItem>> converter = GetListMyEventsListerItemConverter(options);
-                    if (converter != null)
-                    {
-                        value.PastEvents = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.PastEvents = JsonSerializer.Deserialize<List<MyEventsListerItem>>(ref reader, options);
-                    }
+                    value.PastEvents = JsonConverterForListMyEventsListerItem.Instance.Read(ref reader, typeToConvert, options);
                 }
             }
             
@@ -120,43 +87,13 @@ namespace JsonConverterGenerator
             writer.WriteStartObject();
             
             writer.WritePropertyName(CurrentEventsBytes);
-            {
-                JsonConverter<List<MyEventsListerItem>> converter = GetListMyEventsListerItemConverter(options);
-                if (converter != null)
-                {
-                    converter.Write(writer, value.CurrentEvents, options);
-                }
-                else
-                {
-                    JsonSerializer.Serialize<List<MyEventsListerItem>>(writer, value.CurrentEvents, options);
-                }
-            }
+            JsonConverterForListMyEventsListerItem.Instance.Write(writer, value.CurrentEvents, options);
             
             writer.WritePropertyName(FutureEventsBytes);
-            {
-                JsonConverter<List<MyEventsListerItem>> converter = GetListMyEventsListerItemConverter(options);
-                if (converter != null)
-                {
-                    converter.Write(writer, value.FutureEvents, options);
-                }
-                else
-                {
-                    JsonSerializer.Serialize<List<MyEventsListerItem>>(writer, value.FutureEvents, options);
-                }
-            }
+            JsonConverterForListMyEventsListerItem.Instance.Write(writer, value.FutureEvents, options);
             
             writer.WritePropertyName(PastEventsBytes);
-            {
-                JsonConverter<List<MyEventsListerItem>> converter = GetListMyEventsListerItemConverter(options);
-                if (converter != null)
-                {
-                    converter.Write(writer, value.PastEvents, options);
-                }
-                else
-                {
-                    JsonSerializer.Serialize<List<MyEventsListerItem>>(writer, value.PastEvents, options);
-                }
-            }
+            JsonConverterForListMyEventsListerItem.Instance.Write(writer, value.PastEvents, options);
             
             writer.WriteEndObject();
         }

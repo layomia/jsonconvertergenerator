@@ -17,42 +17,20 @@ using System.Text.Json.Serialization;
 
 namespace JsonConverterGenerator
 {
-    public class JsonConverterForIndexViewModel: JsonConverter<IndexViewModel>
+    public sealed class JsonConverterForIndexViewModel : JsonConverter<IndexViewModel>
     {
+        private JsonConverterForIndexViewModel() {}
+        
+        public static readonly JsonConverterForIndexViewModel Instance = new JsonConverterForIndexViewModel();
+        
         private static ReadOnlySpan<byte> ActiveOrUpcomingEventsBytes => new byte[22] { (byte)'A', (byte)'c', (byte)'t', (byte)'i', (byte)'v', (byte)'e', (byte)'O', (byte)'r', (byte)'U', (byte)'p', (byte)'c', (byte)'o', (byte)'m', (byte)'i', (byte)'n', (byte)'g', (byte)'E', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)'s' };
         private static ReadOnlySpan<byte> FeaturedCampaignBytes => new byte[16] { (byte)'F', (byte)'e', (byte)'a', (byte)'t', (byte)'u', (byte)'r', (byte)'e', (byte)'d', (byte)'C', (byte)'a', (byte)'m', (byte)'p', (byte)'a', (byte)'i', (byte)'g', (byte)'n' };
         private static ReadOnlySpan<byte> IsNewAccountBytes => new byte[12] { (byte)'I', (byte)'s', (byte)'N', (byte)'e', (byte)'w', (byte)'A', (byte)'c', (byte)'c', (byte)'o', (byte)'u', (byte)'n', (byte)'t' };
         private static ReadOnlySpan<byte> HasFeaturedCampaignBytes => new byte[19] { (byte)'H', (byte)'a', (byte)'s', (byte)'F', (byte)'e', (byte)'a', (byte)'t', (byte)'u', (byte)'r', (byte)'e', (byte)'d', (byte)'C', (byte)'a', (byte)'m', (byte)'p', (byte)'a', (byte)'i', (byte)'g', (byte)'n' };
         
-        private bool _checkedForListActiveOrUpcomingEventConverter;
-        private JsonConverter<List<ActiveOrUpcomingEvent>> _listActiveOrUpcomingEventConverter;
-        private JsonConverter<List<ActiveOrUpcomingEvent>> GetListActiveOrUpcomingEventConverter(JsonSerializerOptions options)
-        {
-            if (!_checkedForListActiveOrUpcomingEventConverter && _listActiveOrUpcomingEventConverter == null && options != null)
-            {
-                _listActiveOrUpcomingEventConverter = (JsonConverter<List<ActiveOrUpcomingEvent>>)options.GetConverter(typeof(List<ActiveOrUpcomingEvent>));
-                _checkedForListActiveOrUpcomingEventConverter = true;
-            }
-            
-            return _listActiveOrUpcomingEventConverter;
-        }
-        
-        private bool _checkedForCampaignSummaryViewModelConverter;
-        private JsonConverter<CampaignSummaryViewModel> _campaignSummaryViewModelConverter;
-        private JsonConverter<CampaignSummaryViewModel> GetCampaignSummaryViewModelConverter(JsonSerializerOptions options)
-        {
-            if (!_checkedForCampaignSummaryViewModelConverter && _campaignSummaryViewModelConverter == null && options != null)
-            {
-                _campaignSummaryViewModelConverter = (JsonConverter<CampaignSummaryViewModel>)options.GetConverter(typeof(CampaignSummaryViewModel));
-                _checkedForCampaignSummaryViewModelConverter = true;
-            }
-            
-            return _campaignSummaryViewModelConverter;
-        }
-        
         public override IndexViewModel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            // Validate that the reader's cursor is at a start token.
+            // Validate that the reader's cursor is at a start object token.
             if (reader.TokenType != JsonTokenType.StartObject)
             {
                 throw new JsonException();
@@ -82,28 +60,12 @@ namespace JsonConverterGenerator
                 // Determine if JSON property matches 'ActiveOrUpcomingEvents'.
                 if (ActiveOrUpcomingEventsBytes.SequenceEqual(propertyName))
                 {
-                    JsonConverter<List<ActiveOrUpcomingEvent>> converter = GetListActiveOrUpcomingEventConverter(options);
-                    if (converter != null)
-                    {
-                        value.ActiveOrUpcomingEvents = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.ActiveOrUpcomingEvents = JsonSerializer.Deserialize<List<ActiveOrUpcomingEvent>>(ref reader, options);
-                    }
+                    value.ActiveOrUpcomingEvents = JsonConverterForListActiveOrUpcomingEvent.Instance.Read(ref reader, typeToConvert, options);
                 }
                 // Determine if JSON property matches 'FeaturedCampaign'.
                 else if (FeaturedCampaignBytes.SequenceEqual(propertyName))
                 {
-                    JsonConverter<CampaignSummaryViewModel> converter = GetCampaignSummaryViewModelConverter(options);
-                    if (converter != null)
-                    {
-                        value.FeaturedCampaign = converter.Read(ref reader, typeToConvert, options);
-                    }
-                    else
-                    {
-                        value.FeaturedCampaign = JsonSerializer.Deserialize<CampaignSummaryViewModel>(ref reader, options);
-                    }
+                    value.FeaturedCampaign = JsonConverterForCampaignSummaryViewModel.Instance.Read(ref reader, typeToConvert, options);
                 }
                 // Determine if JSON property matches 'IsNewAccount'.
                 else if (IsNewAccountBytes.SequenceEqual(propertyName))
@@ -126,30 +88,10 @@ namespace JsonConverterGenerator
             writer.WriteStartObject();
             
             writer.WritePropertyName(ActiveOrUpcomingEventsBytes);
-            {
-                JsonConverter<List<ActiveOrUpcomingEvent>> converter = GetListActiveOrUpcomingEventConverter(options);
-                if (converter != null)
-                {
-                    converter.Write(writer, value.ActiveOrUpcomingEvents, options);
-                }
-                else
-                {
-                    JsonSerializer.Serialize<List<ActiveOrUpcomingEvent>>(writer, value.ActiveOrUpcomingEvents, options);
-                }
-            }
+            JsonConverterForListActiveOrUpcomingEvent.Instance.Write(writer, value.ActiveOrUpcomingEvents, options);
             
             writer.WritePropertyName(FeaturedCampaignBytes);
-            {
-                JsonConverter<CampaignSummaryViewModel> converter = GetCampaignSummaryViewModelConverter(options);
-                if (converter != null)
-                {
-                    converter.Write(writer, value.FeaturedCampaign, options);
-                }
-                else
-                {
-                    JsonSerializer.Serialize<CampaignSummaryViewModel>(writer, value.FeaturedCampaign, options);
-                }
-            }
+            JsonConverterForCampaignSummaryViewModel.Instance.Write(writer, value.FeaturedCampaign, options);
             
             writer.WriteBoolean(IsNewAccountBytes, value.IsNewAccount);
             

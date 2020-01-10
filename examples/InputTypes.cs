@@ -78,20 +78,17 @@ namespace JsonConverterGenerator
     public class MyEventsListerItemTask
     {
         public string Name { get; set; }
-        public DateTimeOffset? StartDate { get; set; }
-        public DateTimeOffset? EndDate { get; set; }
+        // TODO: revert this to Nullable type.
+        public DateTimeOffset StartDate { get; set; }
+        // TODO: revert this to Nullable type.
+        public DateTimeOffset EndDate { get; set; }
 
         public string FormattedDate
         {
             get
             {
-                if (!StartDate.HasValue || !EndDate.HasValue)
-                {
-                    return null;
-                }
-
-                var startDateString = string.Format("{0:g}", StartDate.Value);
-                var endDateString = string.Format("{0:g}", EndDate.Value);
+                var startDateString = string.Format("{0:g}", StartDate);
+                var endDateString = string.Format("{0:g}", EndDate);
 
                 return string.Format($"From {startDateString} to {endDateString}");
             }
@@ -102,7 +99,8 @@ namespace JsonConverterGenerator
     {
         public byte[] ByteArray { get; set; }
         public DateTime[] DateTimeArray { get; set; }
-        public Dictionary<int, string> Dictionary { get; set; }
+        // TODO: revert this to string key.
+        public Dictionary<string, string> Dictionary { get; set; }
         public List<int> ListOfInt { get; set; }
     }
 }
