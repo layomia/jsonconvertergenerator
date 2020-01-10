@@ -18,13 +18,18 @@ namespace JsonConverterGenerator
         static void Main(string[] args)
         {
             CodeGenerator generator = new CodeGenerator(outputNamespace: "JsonConverterGenerator");
-            string generatedCode = generator.Generate(s_typesToGenerateConvertersFor);
+            Dictionary<Type, string> generatedCode = generator.Generate(s_typesToGenerateConvertersFor);
 
             string examplesDirPath = Path.Join(Directory.GetCurrentDirectory(), "examples");
             Directory.CreateDirectory(examplesDirPath);
 
-            File.WriteAllText(Path.Join(examplesDirPath, "Converters.cs"), generatedCode); ;
-            Console.WriteLine(generatedCode);
+            foreach (KeyValuePair<Type, string> pair in generatedCode)
+            {
+                File.WriteAllText(Path.Join(
+                    examplesDirPath,
+                    $"JsonConverterFor{CodeGenerator.GetReadableTypeName(pair.Key)}.cs"), pair.Value);
+                Console.WriteLine(generatedCode);
+            }
         }
     }
 }

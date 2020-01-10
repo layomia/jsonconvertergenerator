@@ -25,6 +25,9 @@ namespace JsonConverterGenerator
             typeof(DateTimeOffset),
         };
 
+        private HashSet<Type> generatedTypes = new HashSet<Type>();
+        private Dictionary<Type, string> _generatedCode = new Dictionary<Type, string>();
+
         public CodeGenerator(string outputNamespace)
         {
             if (string.IsNullOrWhiteSpace(outputNamespace))
@@ -35,13 +38,33 @@ namespace JsonConverterGenerator
             _outputNamespace = outputNamespace;
         }
 
-        public string Generate(Type[] types)
+        public Dictionary<Type, string> Generate(Type[] types)
         {
             if (types == null || types.Length < 1)
             {
                 throw new ArgumentException(string.Format("{0} is null or empty", types), "types");
             }
 
+            foreach (Type type in types)
+            {
+                WriteJsonConverterForTypeIfAbsent(type);
+            }
+
+            return _generatedCode;
+        }
+
+        private void WriteJsonConverterForTypeIfAbsent(Type type)
+        {
+            if (!typeof(IEnumerable).IsAssignableFrom(type))
+            {
+                WriteJsonConverterWorker(type);
+                _generatedCode[type] = _codeBuilder.ToString();
+                _codeBuilder.Clear();
+            }
+        }
+
+        private void WriteJsonConverterWorker(Type type)
+        {
             WriteAutoGenerationDisclaimer();
 
             WriteBlankLine();
@@ -58,38 +81,14 @@ namespace JsonConverterGenerator
 
             BeginNewControlBlock($"namespace {_outputNamespace}");
 
-            for (int i = 1; i < types.Length + 1; i++)
-            {
-                if (WriteJsonConverterForType(types[i - 1]) && i < types.Length - 1)
-                {
-                    WriteBlankLine();
-                }
-            }
-
-            WriteControlBlockEnd();
-
-            return _codeBuilder.ToString();
-        }
-
-        private bool WriteJsonConverterForType(Type type)
-        {
-            if (typeof(IEnumerable).IsAssignableFrom(type))
-            {
-                return false;
-            }
-
-            WriteJsonConverterForObject(type);
-            return true;
-        }
-
-        private void WriteJsonConverterForObject(Type type)
-        {
             WriteConverterDeclaration(type);
             WritePropertyNameConstants(type);
             WriteConverterCaches(type);
             WriteConverterReadMethod(type);
             WriteBlankLine();
             WriteConverterWriteMethod(type);
+            WriteControlBlockEnd();
+
             WriteControlBlockEnd();
         }
 
@@ -99,7 +98,7 @@ namespace JsonConverterGenerator
             _codeBuilder.Append(new string(' ', _indent * 4));
 
             _codeBuilder.Append("public class JsonConverterFor");
-            _codeBuilder.Append(type.FullName.Replace(".", ""));
+            _codeBuilder.Append(type.Name.Replace(".", ""));
             _codeBuilder.Append(": JsonConverter<");
             _codeBuilder.Append(type.Name);
             _codeBuilder.Append(">");
@@ -124,6 +123,11 @@ namespace JsonConverterGenerator
             string baseName = typeName.Substring(0, backTickIndex);
 
             return $"{baseName}<{string.Join(',', type.GetGenericArguments().Select(arg => GetCompilableTypeName(arg)))}>";
+        }
+
+        public static string GetReadableTypeName(Type type)
+        {
+            return GetReadableTypeName(GetCompilableTypeName(type));
         }
 
         private static string GetReadableTypeName(string compilableName)
@@ -219,7 +223,7 @@ namespace JsonConverterGenerator
                 methodName: "Read",
                 parameterListValue: "ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options");
 
-            string typeFullName = type.FullName;
+            string typeName = type.Name;
 
             // Validate that the reader's cursor is at a start token.
             WriteSingleLineComment("Validate that the reader's cursor is at a start token");
@@ -232,7 +236,7 @@ namespace JsonConverterGenerator
 
             // Create returned object. This assumes type has public parameterless ctor.
             WriteSingleLineComment("Create returned object. This assumes type has public parameterless ctor");
-            WriteLine($"{typeFullName} value = new {typeFullName}();");
+            WriteLine($"{typeName} value = new {typeName}();");
 
             WriteBlankLine();
 
