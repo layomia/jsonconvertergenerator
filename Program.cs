@@ -53,11 +53,11 @@ namespace JsonConverterGenerator
 
             if (process == "Serialize")
             {
-                RunDeserializationBenchmark(mechanism, type);
+                RunSerializationBenchmark(mechanism, type);   
             }
             else if (process == "Deserialize")
             {
-                RunSerializationBenchmark(mechanism, type);
+                RunDeserializationBenchmark(mechanism, type);
             }
             else
             {

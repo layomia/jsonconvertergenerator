@@ -1,11 +1,12 @@
 import json
 import os
-import random
+import time
 
 def clean_state():
 	os.system('cmd /c "RMDIR /Q/S bin > nul 2>&1"')
 	os.system('cmd /c "RMDIR /Q/S obj > nul 2>&1"')
 	os.system('cmd /c "taskkill /F /IM dotnet.exe /T > nul 2>&1"')
+	# time.sleep(5)
 
 processes = ["Deserialize", "Serialize"]
 types = ["LoginViewModel", "Location", "IndexViewModel", "MyEventsListerViewModel", "CollectionsOfPrimitives"]
@@ -26,8 +27,9 @@ def run_new_benchmarks(output_path):
 
 				elasped_times = []
 
-				for i in range(10):
-					elasped_time =  os.popen('cmd /c "dotnet run Benchmarks {} {} {}"'.format(process, mechanism, t)).read()
+				for i in range(2):
+					os.system('cmd /c "dotnet publish -c Release > nul 2>&1"')
+					elasped_time =  os.popen('cmd /c "bin\Release\\netcoreapp3.0\publish\JsonConverterGenerator.exe Benchmarks {} {} {}"'.format(process, mechanism, t)).read()
 					print "{} us".format(elasped_time)
 
 					elasped_times.append(int(elasped_time))
@@ -52,8 +54,8 @@ def load_results(input_path):
 	return new_results
 
 
-results = load_results('start_up_results_with_other_libs.json')
-# results = run_new_benchmarks('start_up_results_with_other_libs.json')
+# results = load_results('start_up_results_with_other_libs.json')
+results = run_new_benchmarks('start_up_results_with_other_libs_release.json')
 print results
 
 print "Summary\n=======\n"
