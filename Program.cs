@@ -169,6 +169,45 @@ namespace JsonConverterGenerator
             WriteElapsedTime(sw.ElapsedTicks);
         }
 
+        private static void RunDeserializationBenchmark_Jil<T>()
+        {
+            T value = DataGenerator.Generate<T>();
+
+            string serialized = Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
+
+            var sw = new Stopwatch();
+            sw.Start();
+            Jil.JSON.Deserialize<T>(serialized, Jil.Options.ISO8601);
+            sw.Stop();
+            WriteElapsedTime(sw.ElapsedTicks);
+        }
+
+        private static void RunDeserializationBenchmark_JsonNet<T>()
+        {
+            T value = DataGenerator.Generate<T>();
+
+            string serialized = Newtonsoft.Json.JsonConvert.SerializeObject(value);
+
+            var sw = new Stopwatch();
+            sw.Start();
+            Newtonsoft.Json.JsonConvert.DeserializeObject<T>(serialized);
+            sw.Stop();
+            WriteElapsedTime(sw.ElapsedTicks);
+        }
+
+        private static void RunDeserializationBenchmark_Utf8Json<T>()
+        {
+            T value = DataGenerator.Generate<T>();
+
+            string serialized = Utf8Json.JsonSerializer.ToJsonString(value);
+
+            var sw = new Stopwatch();
+            sw.Start();
+            Utf8Json.JsonSerializer.Deserialize<T>(serialized);
+            sw.Stop();
+            WriteElapsedTime(sw.ElapsedTicks);
+        }
+
         private static void RunSerializationBenchmark_Default<T>()
         {
             T value = DataGenerator.Generate<T>();
@@ -223,6 +262,39 @@ namespace JsonConverterGenerator
                 Encoding.UTF8.GetString(output.WrittenMemory.Span);
             }
 
+            sw.Stop();
+            WriteElapsedTime(sw.ElapsedTicks);
+        }
+
+        private static void RunSerializationBenchmark_Jil<T>()
+        {
+            T value = DataGenerator.Generate<T>();
+
+            var sw = new Stopwatch();
+            sw.Start();
+            Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
+            sw.Stop();
+            WriteElapsedTime(sw.ElapsedTicks);
+        }
+
+        private static void RunSerializationBenchmark_JsonNet<T>()
+        {
+            T value = DataGenerator.Generate<T>();
+
+            var sw = new Stopwatch();
+            sw.Start();
+            Newtonsoft.Json.JsonConvert.SerializeObject(value);
+            sw.Stop();
+            WriteElapsedTime(sw.ElapsedTicks);
+        }
+
+        private static void RunSerializationBenchmark_Utf8Json<T>()
+        {
+            T value = DataGenerator.Generate<T>();
+
+            var sw = new Stopwatch();
+            sw.Start();
+            Utf8Json.JsonSerializer.ToJsonString(value);
             sw.Stop();
             WriteElapsedTime(sw.ElapsedTicks);
         }
@@ -326,6 +398,108 @@ namespace JsonConverterGenerator
                             case "CollectionsOfPrimitives":
                                 {
                                     RunDeserializationBenchmark_AOT_Raw<CollectionsOfPrimitives>();
+                                }
+                                break;
+                            default:
+                                throw new ArgumentException(s_benchmarkCommandSample);
+                        }
+                    }
+                    break;
+                case "Jil":
+                    {
+                        switch (type)
+                        {
+                            case "LoginViewModel":
+                                {
+                                    RunDeserializationBenchmark_Jil<LoginViewModel>();
+                                }
+                                break;
+                            case "Location":
+                                {
+                                    RunDeserializationBenchmark_Jil<Location>();
+                                }
+                                break;
+                            case "IndexViewModel":
+                                {
+                                    RunDeserializationBenchmark_Jil<IndexViewModel>();
+                                }
+                                break;
+                            case "MyEventsListerViewModel":
+                                {
+                                    RunDeserializationBenchmark_Jil<MyEventsListerViewModel>();
+                                }
+                                break;
+                            case "CollectionsOfPrimitives":
+                                {
+                                    RunDeserializationBenchmark_Jil<CollectionsOfPrimitives>();
+                                }
+                                break;
+                            default:
+                                throw new ArgumentException(s_benchmarkCommandSample);
+                        }
+                    }
+                    break;
+                case "Json.NET":
+                    {
+                        switch (type)
+                        {
+                            case "LoginViewModel":
+                                {
+                                    RunDeserializationBenchmark_JsonNet<LoginViewModel>();
+                                }
+                                break;
+                            case "Location":
+                                {
+                                    RunDeserializationBenchmark_JsonNet<Location>();
+                                }
+                                break;
+                            case "IndexViewModel":
+                                {
+                                    RunDeserializationBenchmark_JsonNet<IndexViewModel>();
+                                }
+                                break;
+                            case "MyEventsListerViewModel":
+                                {
+                                    RunDeserializationBenchmark_JsonNet<MyEventsListerViewModel>();
+                                }
+                                break;
+                            case "CollectionsOfPrimitives":
+                                {
+                                    RunDeserializationBenchmark_JsonNet<CollectionsOfPrimitives>();
+                                }
+                                break;
+                            default:
+                                throw new ArgumentException(s_benchmarkCommandSample);
+                        }
+                    }
+                    break;
+                case "Utf8Json":
+                    {
+                        switch (type)
+                        {
+                            case "LoginViewModel":
+                                {
+                                    RunDeserializationBenchmark_Utf8Json<LoginViewModel>();
+                                }
+                                break;
+                            case "Location":
+                                {
+                                    RunDeserializationBenchmark_Utf8Json<Location>();
+                                }
+                                break;
+                            case "IndexViewModel":
+                                {
+                                    RunDeserializationBenchmark_Utf8Json<IndexViewModel>();
+                                }
+                                break;
+                            case "MyEventsListerViewModel":
+                                {
+                                    RunDeserializationBenchmark_Utf8Json<MyEventsListerViewModel>();
+                                }
+                                break;
+                            case "CollectionsOfPrimitives":
+                                {
+                                    RunDeserializationBenchmark_Utf8Json<CollectionsOfPrimitives>();
                                 }
                                 break;
                             default:
@@ -437,6 +611,108 @@ namespace JsonConverterGenerator
                             case "CollectionsOfPrimitives":
                                 {
                                     RunSerializationBenchmark_AOT_Raw<CollectionsOfPrimitives>();
+                                }
+                                break;
+                            default:
+                                throw new ArgumentException(s_benchmarkCommandSample);
+                        }
+                    }
+                    break;
+                case "Jil":
+                    {
+                        switch (type)
+                        {
+                            case "LoginViewModel":
+                                {
+                                    RunSerializationBenchmark_Jil<LoginViewModel>();
+                                }
+                                break;
+                            case "Location":
+                                {
+                                    RunSerializationBenchmark_Jil<Location>();
+                                }
+                                break;
+                            case "IndexViewModel":
+                                {
+                                    RunSerializationBenchmark_Jil<IndexViewModel>();
+                                }
+                                break;
+                            case "MyEventsListerViewModel":
+                                {
+                                    RunSerializationBenchmark_Jil<MyEventsListerViewModel>();
+                                }
+                                break;
+                            case "CollectionsOfPrimitives":
+                                {
+                                    RunSerializationBenchmark_Jil<CollectionsOfPrimitives>();
+                                }
+                                break;
+                            default:
+                                throw new ArgumentException(s_benchmarkCommandSample);
+                        }
+                    }
+                    break;
+                case "Json.NET":
+                    {
+                        switch (type)
+                        {
+                            case "LoginViewModel":
+                                {
+                                    RunSerializationBenchmark_JsonNet<LoginViewModel>();
+                                }
+                                break;
+                            case "Location":
+                                {
+                                    RunSerializationBenchmark_JsonNet<Location>();
+                                }
+                                break;
+                            case "IndexViewModel":
+                                {
+                                    RunSerializationBenchmark_JsonNet<IndexViewModel>();
+                                }
+                                break;
+                            case "MyEventsListerViewModel":
+                                {
+                                    RunSerializationBenchmark_JsonNet<MyEventsListerViewModel>();
+                                }
+                                break;
+                            case "CollectionsOfPrimitives":
+                                {
+                                    RunSerializationBenchmark_JsonNet<CollectionsOfPrimitives>();
+                                }
+                                break;
+                            default:
+                                throw new ArgumentException(s_benchmarkCommandSample);
+                        }
+                    }
+                    break;
+                case "Utf8Json":
+                    {
+                        switch (type)
+                        {
+                            case "LoginViewModel":
+                                {
+                                    RunSerializationBenchmark_Utf8Json<LoginViewModel>();
+                                }
+                                break;
+                            case "Location":
+                                {
+                                    RunSerializationBenchmark_Utf8Json<Location>();
+                                }
+                                break;
+                            case "IndexViewModel":
+                                {
+                                    RunSerializationBenchmark_Utf8Json<IndexViewModel>();
+                                }
+                                break;
+                            case "MyEventsListerViewModel":
+                                {
+                                    RunSerializationBenchmark_Utf8Json<MyEventsListerViewModel>();
+                                }
+                                break;
+                            case "CollectionsOfPrimitives":
+                                {
+                                    RunSerializationBenchmark_Utf8Json<CollectionsOfPrimitives>();
                                 }
                                 break;
                             default:
