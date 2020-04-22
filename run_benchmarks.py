@@ -28,8 +28,8 @@ def run_new_benchmarks(output_path):
 				elasped_times = []
 
 				for i in range(2):
-					os.system('cmd /c "dotnet publish -c Release > nul 2>&1"')
-					elasped_time =  os.popen('cmd /c "bin\Release\\netcoreapp3.0\publish\JsonConverterGenerator.exe Benchmarks {} {} {}"'.format(process, mechanism, t)).read()
+					os.system('cmd /c "dotnet publish -c Release -p:PublishReadyToRun=true --runtime win-x64 > nul 2>&1"')
+					elasped_time =  os.popen('cmd /c "bin\Release\\netcoreapp5.0\win-x64\publish\JsonConverterGenerator.exe Benchmarks {} {} {}"'.format(process, mechanism, t)).read()
 					print "{} us".format(elasped_time)
 
 					elasped_times.append(int(elasped_time))
@@ -55,7 +55,7 @@ def load_results(input_path):
 
 
 # results = load_results('start_up_results_with_other_libs.json')
-results = run_new_benchmarks('start_up_results_with_other_libs_release.json')
+results = run_new_benchmarks('start_up_results_readytorun.json')
 print results
 
 print "Summary\n=======\n"

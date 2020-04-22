@@ -23,6 +23,21 @@ namespace JsonConverterGenerator
             typeof(CollectionsOfPrimitives),
         };
 
+        public static void Main(string[] args)
+        {
+            switch (args[0])
+            {
+                case "Generator":
+                    GenerateConverters();
+                    break;
+                case "Benchmarks":
+                    RunBenchmarks(args);
+                    break;
+                default:
+                    throw new ArgumentException(s_firstArgPrompt);
+            }
+        }
+
         private static void GenerateConverters()
         {
             CodeGenerator generator = new CodeGenerator(outputNamespace: "JsonConverterGenerator");
@@ -62,21 +77,6 @@ namespace JsonConverterGenerator
             else
             {
                 throw new ArgumentException(s_benchmarkCommandSample);
-            }
-        }
-
-        public static void Main(string[] args)
-        {
-            switch (args[0])
-            {
-                case "Generator":
-                    GenerateConverters();
-                    break;
-                case "Benchmarks":
-                    RunBenchmarks(args);
-                    break;
-                default:
-                    throw new ArgumentException(s_firstArgPrompt);
             }
         }
 
