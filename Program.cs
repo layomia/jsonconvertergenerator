@@ -87,10 +87,7 @@ namespace JsonConverterGenerator
 
         private static void RunDeserializationBenchmark_Default<T>()
         {
-            T value = DataGenerator.Generate<T>();
-
-            var options = new JsonSerializerOptions();
-            string serialized = JsonSerializer.Serialize(value, options);
+            string serialized = GetJson(typeof(T));
 
             var sw = new Stopwatch();
             sw.Start();
@@ -101,13 +98,10 @@ namespace JsonConverterGenerator
 
         private static void RunDeserializationBenchmark_AOT_LoadConverters<T>()
         {
-            T value = DataGenerator.Generate<T>();
-
-            var options = new JsonSerializerOptions();
-            string serialized = JsonSerializer.Serialize(value, options);
+            string serialized = GetJson(typeof(T));
 
             // Load converters
-            options = new JsonSerializerOptions();            
+            var options = new JsonSerializerOptions();
             foreach (JsonConverter converter in GetAotConverters())
             {
                 options.Converters.Add(converter);
@@ -122,10 +116,7 @@ namespace JsonConverterGenerator
 
         private static void RunDeserializationBenchmark_AOT_Raw<T>()
         {
-            T value = DataGenerator.Generate<T>();
-
-            var options = new JsonSerializerOptions();
-            string serialized = JsonSerializer.Serialize(value, options);
+            string serialized = GetJson(typeof(T));
 
             JsonConverter<T> aotConverter = GetAotConverter<T>();
             
@@ -171,9 +162,7 @@ namespace JsonConverterGenerator
 
         private static void RunDeserializationBenchmark_Jil<T>()
         {
-            T value = DataGenerator.Generate<T>();
-
-            string serialized = Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
+            string serialized = GetJson(typeof(T));
 
             var sw = new Stopwatch();
             sw.Start();
@@ -184,9 +173,7 @@ namespace JsonConverterGenerator
 
         private static void RunDeserializationBenchmark_JsonNet<T>()
         {
-            T value = DataGenerator.Generate<T>();
-
-            string serialized = Newtonsoft.Json.JsonConvert.SerializeObject(value);
+            string serialized = GetJson(typeof(T));
 
             var sw = new Stopwatch();
             sw.Start();
@@ -197,9 +184,7 @@ namespace JsonConverterGenerator
 
         private static void RunDeserializationBenchmark_Utf8Json<T>()
         {
-            T value = DataGenerator.Generate<T>();
-
-            string serialized = Utf8Json.JsonSerializer.ToJsonString(value);
+            string serialized = GetJson(typeof(T));
 
             var sw = new Stopwatch();
             sw.Start();
@@ -303,7 +288,7 @@ namespace JsonConverterGenerator
         {
             switch (mechanism)
             {
-                case "Default":
+                case "System.Text.Json":
                     {
                         switch (type)
                         {
@@ -516,7 +501,7 @@ namespace JsonConverterGenerator
         {
             switch (mechanism)
             {
-                case "Default":
+                case "System.Text.Json":
                     {
                         switch (type)
                         {
@@ -765,5 +750,9 @@ namespace JsonConverterGenerator
             yield return JsonConverterForMyEventsListerViewModel.Instance;
             yield return JsonConverterForCollectionsOfPrimitives.Instance;
         }
+
+        private static readonly string s_payloadDir = Path.Join(Directory.GetCurrentDirectory(), "payloads");
+
+        private static string GetJson(Type type) => File.ReadAllText(Path.Join(s_payloadDir, $"{type.Name}.json"));
     }
 }

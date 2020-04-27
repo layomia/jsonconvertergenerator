@@ -9,8 +9,8 @@ def clean_state():
 	# time.sleep(5)
 
 processes = ["Deserialize", "Serialize"]
-types = ["LoginViewModel", "Location", "IndexViewModel", "MyEventsListerViewModel", "CollectionsOfPrimitives"]
-mechanisms = ["Jil", "Json.NET", "Utf8Json", "Default", "AOT_LoadConverters", "AOT_Raw"]
+types = ["LoginViewModel", "Location", "IndexViewModel", "MyEventsListerViewModel"] #, "CollectionsOfPrimitives"] Jil failing with the JSON payload.
+mechanisms = ["System.Text.Json", "Json.NET", "Utf8Json", "Jil", "AOT_LoadConverters", "AOT_Raw"]
 
 clean_state()
 
@@ -54,8 +54,8 @@ def load_results(input_path):
 	return new_results
 
 
-# results = load_results('start_up_results_with_other_libs.json')
-results = run_new_benchmarks('start_up_results_readytorun.json')
+results = load_results('start_up_results_hardcode_json.json')
+#results = run_new_benchmarks('start_up_results_hardcode_json.json')
 print results
 
 print "Summary\n=======\n"
@@ -91,7 +91,7 @@ for process in processes:
 
 		for mechanism in mechanisms:
 			# Baseline is default System.Text.Json run without options
-			baseline = results["{} Default".format(title)]
+			baseline = results["{} System.Text.Json".format(title)]
 			
 			mean = results["{} {}".format(title, mechanism)]
 			mean_as_str = str(mean)
