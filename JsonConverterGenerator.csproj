@@ -23,4 +23,8 @@
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="payloads\" />
+  </ItemGroup>
+
 </Project>

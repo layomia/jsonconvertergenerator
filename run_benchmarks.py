@@ -54,8 +54,8 @@ def load_results(input_path):
 	return new_results
 
 
-results = load_results('start_up_results_hardcode_json.json')
-#results = run_new_benchmarks('start_up_results_hardcode_json.json')
+#results = load_results('start_up_results_hardcode_json.json')
+results = run_new_benchmarks('start_up_results_aot_loadconverters.json')
 print results
 
 print "Summary\n=======\n"

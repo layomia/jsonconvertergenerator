@@ -100,6 +100,9 @@ namespace JsonConverterGenerator
         {
             string serialized = GetJson(typeof(T));
 
+            var sw = new Stopwatch();
+            sw.Start();
+
             // Load converters
             var options = new JsonSerializerOptions();
             foreach (JsonConverter converter in GetAotConverters())
@@ -107,8 +110,6 @@ namespace JsonConverterGenerator
                 options.Converters.Add(converter);
             }
 
-            var sw = new Stopwatch();
-            sw.Start();
             JsonSerializer.Deserialize<T>(serialized, options);
             sw.Stop();
             WriteElapsedTime(sw.ElapsedTicks);
@@ -211,6 +212,9 @@ namespace JsonConverterGenerator
         {
             T value = DataGenerator.Generate<T>();
 
+            var sw = new Stopwatch();
+            sw.Start();
+
             // System.Text.Json
             var options = new JsonSerializerOptions();
             foreach (JsonConverter converter in GetAotConverters())
@@ -218,9 +222,6 @@ namespace JsonConverterGenerator
                 options.Converters.Add(converter);
             }
 
-
-            var sw = new Stopwatch();
-            sw.Start();
             JsonSerializer.Serialize(value, options);
             sw.Stop();
             WriteElapsedTime(sw.ElapsedTicks);
